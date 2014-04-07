@@ -84,26 +84,19 @@ JSPraat.TextGrid.Tier.prototype.parseHeader = function() {
 	var match;
 	var flagEndConditionReached = false;
 
-	var previousSpaceLevel = null;
-	var currentSpaceLevel = null;
-
 	var size = null;
 	for(var i = 0; i < this.lines.length; i++) {
-		if( (match=this.lines[i].match(leadingSpaceRegex)) ) {
-			currentSpaceLevel = match[1].length;
-		}
-		if(previousSpaceLevel && currentSpaceLevel !== previousSpaceLevel) {
-			this.startingLineIndexOfBody = i;
-			flagEndConditionReached = true;
-			break;
-		}
-		//--
 		if ( (match = this.lines[i].match(intervalsSizeRegex)) ) {
 			this.header.numberOfIntervals = size = parseInt(match[1]);
+			flagEndConditionReached = true;
+			this.startingLineIndexOfBody = i+1;
+			break;
 		}
-		else
 		if ( (match = this.lines[i].match(pointsSizeRegex)) ) {
 			this.header.numberOfPoints = size = parseInt(match[1]);
+			flagEndConditionReached = true;
+			this.startingLineIndexOfBody = i+1;
+			break;
 		}
 		else
 		if ( (match = this.lines[i].match(classnameRegex)) ) {
@@ -121,9 +114,8 @@ JSPraat.TextGrid.Tier.prototype.parseHeader = function() {
 		if ( (match = this.lines[i].match(xmaxRegex)) ) {
 			this.header.xmax = match[1];
 		}
-		previousSpaceLevel = currentSpaceLevel;
 	}
-	//--
+
 	if(!flagEndConditionReached && size > 0) {
 		throw "Invalid Tier Header: end condition not reached while size is non-zero";
 	}
@@ -132,35 +124,38 @@ JSPraat.TextGrid.Tier.prototype.parseIntervals = function() {
 	if(this.header.numberOfIntervals === 0) { return; }
 
 	console.log('Parsing Intervals FROM ', this.startingLineIndexOfBody);
+	console.log(this.lines[this.startingLineIndexOfBody]);
 	var i = this.startingLineIndexOfBody; 
-	var xmin, xmax, text;
+	var topm, xmin, xmax, text;
+
+	var intervalStartRegex = /^\s*intervals\s*\[\d+\]\:/i;
 	var xmaxRegex = /^\s*xmax\s*\=\s*([\d\.]+)/i;
 	var xminRegex = /^\s*xmin\s*\=\s*([\d\.]+)/i;
 	var textRegex = /^\s*text\s*\=\s*\"(.*)\"/i;
 
 	while(i < this.lines.length) {
+		topm = this.lines[i++]; if(i >= this.lines.length) { throw "Invalid Tier Body: incomplete interval 0"; }
 		xmin = this.lines[i++]; if(i >= this.lines.length) { throw "Invalid Tier Body: incomplete interval 1"; }
 		xmax = this.lines[i++]; if(i >= this.lines.length) { throw "Invalid Tier Body: incomplete interval 2"; }
 		text = this.lines[i++];
 
-		if( (match = xmax.match(xmaxRegex)) ){ xmax = parseInt(match[1]); } 
-		else {
-			throw "Invalid Tier Body: Invalid 'xmax' format";
-		}
-
-		if( (match = xmin.match(xminRegex)) ) {
-			xmin = parseInt(match[1]);
+		if( (match = topm.match(intervalStartRegex)) ) {
 		} else {
-			throw "Invalid Tier Body: Invalid 'xmin' format";
+			throw "Invalid Tier Body: Invalid interval start format, expecting 'intervals [<digit>]:'";
 		}
 
-		if( (match=text.match(textRegex)) ) {
-			text = match[1];
-		} else {
-			throw "Invalid Tier Body: Invalid 'text' format";
-		}
+		if( (match = xmax.match(xmaxRegex)) ){ xmax = parseFloat(match[1]); } 
+		else { throw "Invalid Tier Body: Invalid 'xmax' format";   }
 
-		this.intervals.push({'xmin': xmin, 'xmax': xmax, 'text': text});
+		if( (match = xmin.match(xminRegex)) ) { xmin = parseFloat(match[1]);
+		} else { throw "Invalid Tier Body: Invalid 'xmin' format"; }
+
+		if( (match=text.match(textRegex)) ) { text = match[1];
+		} else { throw "Invalid Tier Body: Invalid 'text' format"; }
+
+		// this.intervals.push({'xmin': xmin, 'xmax': xmax, 'text': text});
+		this.intervals.push([xmin, xmax, text]);
+
 	}
 	if(i < this.lines.length) { throw "Invalid Tier Body: incomplete interval remains"; }
 };
@@ -169,9 +164,29 @@ JSPraat.TextGrid.Tier.prototype.parsePoints = function() {
 	if(this.header.numberOfPoints === 0) { return; }
 	console.log('Parsing Intervals FROM ', this.startingLineIndexOfBody);
 
-	
-	for(var i = this.startingLineIndexOfBody; i < this.lines.length; i++) {
+	var pointStartRegex = /\s*points\s*\[\d+\]\:/i;
+	var numberRegex = /^\s*number\s*\=\s*([\d\.]+)/i;
+	var markRegex = /^\s*mark\s*\=\s*\"(.*)\"/i;
 
+	var topm, number, mark;
+	for(var i = this.startingLineIndexOfBody; i < this.lines.length; i++) {
+		topm = this.lines[i++]; 	if(i >= this.lines.length) { throw "Invalid Tier Body: incomplete point 0"; }
+		number = this.lines[i++];	if(i >= this.lines.length) { throw "Invalid Tier Body: incomplete point 1"; }
+		mark = this.lines[i++];
+
+		if( (match = topm.match(pointStartRegex)) ) {
+		} else {
+			throw "Invalid Tier Body: Invalid point start format, expecting 'points [<digit>]:'";
+		}
+
+		if( (match = number.match(numberRegex)) ){ number = parseFloat(match[1]); } 
+		else { throw "Invalid Tier Body: Invalid 'number' format";   }
+
+		if( (match=mark.match(markRegex)) ) { mark = match[1];
+		} else { throw "Invalid Tier Body: Invalid 'mark' format"; }
+
+		// this.points.push({'number': number, 'mark': mark});
+		this.points.push([number, mark]);
 	}
 };
 

@@ -198,6 +198,8 @@ JSPraat.TextGrid.TextGrid = function(data) {
 	var match;
 	var self = this;
 
+	this.readyFunc = null;
+
 	if( (match = data.match(pathRegex)) ) {
 		$.get(data, function(value) {
 			self.initializeFromData(value);
@@ -222,6 +224,18 @@ JSPraat.TextGrid.TextGrid.prototype.initializeFromData = function(data) {
 	this.parseHeader();
 	this.checkHeader();
 	this.parseTiers();
+
+
+	if(typeof this.readyFunc === 'function') {
+		this.readyFunc();
+	}
+};
+
+JSPraat.TextGrid.TextGrid.prototype.ready = function(func) {
+	if(typeof func !== 'function') {
+		throw "TextGrid ready requires a function";
+	}
+	this.readyFunc = func;
 };
 
 JSPraat.TextGrid.TextGrid.prototype.checkHeader = function() {
@@ -330,9 +344,30 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 	this.wav = null;
 };
 
-JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.render() {
+JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.setTextGrid = function(tgrid) {
+	this.textgrid = tgrid;
+	this.renderTextGrid();
+}
+
+JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.render = function() {
 	this.container.width = this.container.$element.width();
 	this.container.height = this.container.$element.height();
-
 	
+	if(! this.textgrid === null) {
+		this.renderTextGrid();
+	}
+	if(! this.wav === null) {
+		this.renderWav();
+	}
 };
+
+JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
+	if(this.textgrid === null) { throw "TimeSyncedGrid: renderTextGrid found no textgrid"; }
+	
+	// console.log('rendering textgrid');
+	// console.log(this.textgrid);
+	// console.log(this.textgrid.header);
+
+	this.xmin = this.textgrid.header.xmin;
+	this.xmax = this.textgrid.header.xmax;
+}

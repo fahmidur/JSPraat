@@ -29,7 +29,6 @@ JSPraat.TextGrid.Tier = function(linesArray) {
 	else {
 		throw "Invalid Tier Header: "+ this.header.classname + ' is not an acceptable classname';
 	}
-	console.log(this);
 };
 JSPraat.TextGrid.Tier.prototype.checkHeader = function() {
 	if(! this.header.classname ) {
@@ -123,8 +122,8 @@ JSPraat.TextGrid.Tier.prototype.parseHeader = function() {
 JSPraat.TextGrid.Tier.prototype.parseIntervals = function() {
 	if(this.header.numberOfIntervals === 0) { return; }
 
-	console.log('Parsing Intervals FROM ', this.startingLineIndexOfBody);
-	console.log(this.lines[this.startingLineIndexOfBody]);
+	// console.log('Parsing Intervals FROM ', this.startingLineIndexOfBody);
+	// console.log(this.lines[this.startingLineIndexOfBody]);
 	var i = this.startingLineIndexOfBody; 
 	var topm, xmin, xmax, text;
 
@@ -162,7 +161,7 @@ JSPraat.TextGrid.Tier.prototype.parseIntervals = function() {
 
 JSPraat.TextGrid.Tier.prototype.parsePoints = function() {
 	if(this.header.numberOfPoints === 0) { return; }
-	console.log('Parsing Intervals FROM ', this.startingLineIndexOfBody);
+	// console.log('Parsing Intervals FROM ', this.startingLineIndexOfBody);
 
 	var pointStartRegex = /\s*points\s*\[\d+\]\:/i;
 	var numberRegex = /^\s*number\s*\=\s*([\d\.]+)/i;
@@ -194,8 +193,21 @@ JSPraat.TextGrid.TextGrid = function(data) {
 	if (! (this instanceof JSPraat.TextGrid.TextGrid) ) {
 		return new JSPraat.TextGrid.TextGrid(data);
 	}
-	this.lines = data.split('\n');
 
+	var pathRegex = /^.+\.TextGrid$/i;
+	var match;
+	var self = this;
+
+	if( (match = data.match(pathRegex)) ) {
+		$.get(data, function(value) {
+			self.initializeFromData(value);
+		});
+	} else {
+		this.initializeFromData(data);	
+	}
+};
+JSPraat.TextGrid.TextGrid.prototype.initializeFromData = function(data) {
+	this.lines = data.split('\n');
 	this.header = {
 		fileType: null,
 		objectClass: null,
@@ -233,7 +245,7 @@ JSPraat.TextGrid.TextGrid.prototype.parseTiers = function() {
 	for(var i = this.startingLineIndexOfTiers; i < this.lines.length; i++) {
 		if( (match=this.lines[i].match(tierStartRegex)) ) {
 			if(inTier > 0) {
-				console.log('[', startIndex, ', ', endIndex, ']');
+				// console.log('[', startIndex, ', ', endIndex, ']');
 				this.tiers.push(new JSPraat.TextGrid.Tier(this.lines.slice(startIndex, endIndex)));
 			}
 			inTier = parseInt(match[1]);
@@ -244,8 +256,8 @@ JSPraat.TextGrid.TextGrid.prototype.parseTiers = function() {
 			endIndex++;
 		}
 	}
-	console.log('final tier ');
-	console.log('[', startIndex, ', ', endIndex, ']');
+	// console.log('final tier ');
+	// console.log('[', startIndex, ', ', endIndex, ']');
 	this.tiers.push(new JSPraat.TextGrid.Tier(this.lines.slice(startIndex, endIndex)));
 };
 
@@ -292,4 +304,35 @@ JSPraat.TextGrid.TextGrid.prototype.parseHeader = function() {
 		}
 	}
 	// console.log('----END OF HEADER----');
+};
+
+
+JSPraat.TimeSyncedGrid = {};
+JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
+	if(! (this instanceof JSPraat.TimeSyncedGrid.TimeSyncedGrid)) {
+		return new JSPraat.TimeSyncedGrid.TimeSyncedGrid(containerID);
+	}
+
+	this.container = {
+		'ID': containerID,
+		'element': document.getElementById(containerID),
+		'$element': $('#'+containerID),
+	};
+
+	if(this.container.$element.length === 0) {
+		throw "TimeSyncedGrid: container id='"+containerID+"' does not exist";
+	}
+
+	this.xmin = null;
+	this.xmax = null;
+
+	this.textgrid = null;
+	this.wav = null;
+};
+
+JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.render() {
+	this.container.width = this.container.$element.width();
+	this.container.height = this.container.$element.height();
+
+	
 };

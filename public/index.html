@@ -3,19 +3,30 @@
 <head>
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 	<style>
+		body {
+		}
 		#textgrid {
 			color: gray;
-			/*display: none;*/
+			display: none;
+		}
+		#container {
+			border: 1px solid red;
+			max-width:800px;
+			margin: 0 auto;
+			min-height:500px;
+			background-color: white;
 		}
 	</style>
 	<script src='/js/JSPraat.js'></script>
-	<script src='/js/main.js'></script>
 
 </head>
 <body>
-	<div class='render'>
+	<div id='container'>
 	</div>
+
 	<pre id='textgrid'>
 	</pre>
+
+	<script src='/js/main.js'></script>
 </body>
 </html>

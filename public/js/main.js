@@ -1,13 +1,9 @@
 'use strict';
 
-// var one = '/sample-textgrids/iti-01.TextGrid';
-var one = '/sample-textgrids/nominated.TextGrid';
-var two = '/sample-textgrids/iti-02.TextGrid';
+// var one = '/sample-textgrids/nominated.TextGrid';
 
-var tgone;
+var one = '/sample-textgrids/iti-01.TextGrid';
+var one_wav = '/sample-textgrids/iti-01.wav';
 
-$(function() {
-	$('#textgrid').load(one, function(data) {
-		tgone = new JSPraat.TextGrid.TextGrid(data);
-	});
-});
+var tgone = JSPraat.TextGrid.TextGrid(one);
+var tgrid = JSPraat.TimeSyncedGrid.TimeSyncedGrid('container');

@@ -552,7 +552,70 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 				return d[2];
 			})
 			.attr('class', 'tier-text');
+		}
+		if(data.isPointTier()) {
+			var d3svg = d3.select(svg);
 
+			d3svg
+			.append('rect')
+			.attr('height', halfTierHeight)
+			.attr('width', tierNameOffset)
+			.attr('x', 0)
+			.attr('y', halfTierHeight/2)
+			.attr('class', 'tier-name-box')
+			.attr('title', data.header.name);
+
+			d3svg
+			.append('text')
+			.attr('height', halfTierHeight)
+			.attr('width', tierNameOffset)
+			.attr('x', 0)
+			.attr('y', halfTierHeight/2)
+			.attr('dy', halfTierHeight/1.5)
+			.attr('dx', 2)
+			.attr('class', 'tier-name-text')
+			.text(data.header.name);
+
+			var groups = d3svg
+			.selectAll('g').data(data.points)
+			.enter()
+			.append('g')
+			.attr('transform', function(d, i) {
+				return "translate("+ (tierNameOffset + self.xmult*d[0]) + ", " + (halfTierHeight / 2) + ")";
+			})
+			.attr('width', 5)
+			.attr('height', halfTierHeight)
+			.attr('class', 'point-group')
+			.on('mouseenter', function(d) {
+				self.c.infotop.$.text(d[0] + ": " + d[1]);
+			})
+			.on('mouseout', function(d) {
+				
+			});
+
+			groups
+			.append('rect')
+			.attr('height', halfTierHeight)
+			.attr('width', function(d) {
+				return 10 * d[1].length;
+			})
+			.attr('x', 0)
+			.attr('y', 0)
+			.attr('rx', 5)
+			.attr('ry', 5)
+			.attr('class', 'point-box');
+
+
+			groups
+			.append('text')
+			.attr('x', 0)
+			.attr('y', 0)
+			.attr('dy', halfTierHeight/1.5)
+			.attr('dx', 2)
+			.text(function(d) {
+				return d[1];
+			})
+			.attr('class', 'tier-text');
 		}
 	}
 

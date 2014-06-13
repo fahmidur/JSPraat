@@ -24,7 +24,7 @@ item []:
         intervals [1]:
             xmin = 0 
             xmax = 1.1058503401360544 
-            text = "" 
+            text = "dumb" 
     item [3]:
         class = "TextTier" 
         name = "breaks" 
@@ -40,4 +40,4 @@ item []:
         intervals [1]:
             xmin = 0 
             xmax = 1.1058503401360544 
-            text = "" 
+            text = "super" 

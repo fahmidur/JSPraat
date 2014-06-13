@@ -465,7 +465,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 	var halfTierHeight = tierHeight / 2;
 
 
-	console.log(tiers);
+	// console.log(tiers);
 
 	// tiers.append('line')
 	// .attr('x1', 0)
@@ -473,27 +473,62 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 	// .attr('x2', function(d) { return xPosLast; })
 	// .attr('y2', halfTierHeight)
 	// .attr('class', 'tier-central-line');
-
-	console.log(tiers);
 	var rTiers = tiers[0];
+	var tierNameOffset = 0;
+	for(var i = 0; i < rTiers.length; i++) {
+		var name = rTiers[i].__data__.header.name
+		if(name.length > tierNameOffset) { tierNameOffset = name.length; }
+	}
+	tierNameOffset*=10;
+
 	for(var i = 0; i < rTiers.length; i++) {
 		var svg = rTiers[i];
 		var data = svg.__data__;
-		console.log(data);
 
 		if(data.isIntervalTier()) {
-			var groups = d3.select(svg)
+			var d3svg = d3.select(svg);
+
+			d3svg
+			.append('rect')
+			.attr('height', halfTierHeight)
+			.attr('width', tierNameOffset)
+			.attr('x', 0)
+			.attr('y', halfTierHeight/2)
+			.attr('class', 'tier-name-box')
+			.attr('title', data.header.name);
+
+			d3svg
+			.append('text')
+			.attr('height', halfTierHeight)
+			.attr('width', tierNameOffset)
+			.attr('x', 0)
+			.attr('y', halfTierHeight/2)
+			.attr('dy', halfTierHeight/1.5)
+			.attr('dx', 2)
+			.attr('class', 'tier-name-text')
+			.text(data.header.name);
+
+
+
+
+			var groups = d3svg
 			.selectAll('g').data(data.intervals)
 			.enter()
 			.append('g')
 			.attr('transform', function(d, i) {
-				return "translate("+ self.xmult*d[0] + ", " + (halfTierHeight / 2) + ")";
+				return "translate("+ (tierNameOffset + self.xmult*d[0]) + ", " + (halfTierHeight / 2) + ")";
 			})
 			.attr('width', function(d) {
 				return (self.xmult * d[1]) - (self.xmult * d[0]) - 1;
 			})
 			.attr('height', halfTierHeight)
-			.attr('class', 'interval-group');
+			.attr('class', 'interval-group')
+			.on('mouseenter', function(d) {
+				self.c.infotop.$.text("[" + d[0]+ ", " + d[1]+ "] " + d[2]);
+			})
+			.on('mouseout', function(d) {
+				// self.c.infotop.$.text("");
+			});
 
 			groups
 			.append('rect')
@@ -506,7 +541,6 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			.attr('class', 'interval-box')
 			.attr('title', function(d) { return d[2]; });
 
-			// groups.append('a');
 
 			groups
 			.append('text')
@@ -519,29 +553,6 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			})
 			.attr('class', 'tier-text');
 
-			
-			// d3.select(svg).selectAll('rec')
-			// .data(data.intervals)
-			// .enter()
-			// .append('rect')
-			// .attr('x', function(d) { return self.xmult * d[0]; })
-			// .attr('y', function(d) { return halfParentHeight.call(this, d) / 2 } )
-			// .attr('height', halfParentHeight)
-			// .attr('width', function(d) {
-			// 	return (self.xmult * d[1]) - (self.xmult * d[0]) - 1;
-			// })
-			// .attr('class', 'interval-box')
-			// .attr('title', function(d) { return d[2]; });
-
-
-
-
-
-			//WRONG
-			// .append('text')
-			// .attr('x', function(d) { return 0; })
-			// .attr('y', function(d) { return 0; })
-			// .text('bla').attr('class', 'tier-text');
 		}
 	}
 

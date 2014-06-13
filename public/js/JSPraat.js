@@ -43,6 +43,10 @@ JSPraat.TextGrid.Tier = function(linesArray) {
 		throw "Invalid Tier Header: "+ this.header.classname + ' is not an acceptable classname';
 	}
 };
+/**
+ * @method checkHeader
+ * @private
+ */
 JSPraat.TextGrid.Tier.prototype.checkHeader = function() {
 	if(! this.header.classname ) {
 		throw "Invalid Tier Header: classname is missing";
@@ -69,12 +73,22 @@ JSPraat.TextGrid.Tier.prototype.checkHeader = function() {
 		throw "Invalid Tier Header: header cannot contain both points size and intervals size";
 	}
 };
+/**
+ * Returns true if the tier is an Interval Tier
+ * @method isIntervalTier
+ * @public
+ */
 JSPraat.TextGrid.Tier.prototype.isIntervalTier = function() {
 	if(this.header.classname === 'IntervalTier') {
 		return true;
 	}
 	return false;
 };
+/**
+ * Returns true if the tier is a Point Tier
+ * @method isPointTier
+ * @public
+ */
 JSPraat.TextGrid.Tier.prototype.isPointTier = function() {
 	if(this.header.classname === 'TextTier') {
 		return true;
@@ -82,7 +96,10 @@ JSPraat.TextGrid.Tier.prototype.isPointTier = function() {
 	//... (maybe other tier types are also 'point tiers')
 	return false;
 };
-
+/**
+ * @method parseHeader
+ * @private
+ */
 JSPraat.TextGrid.Tier.prototype.parseHeader = function() {
 	var classnameRegex = /^\s+class\s*=\s*\"(\w+)\"/i;
 	var nameRegex = /^\s+name\s*=\s*\"(\w+)\"/i;
@@ -132,6 +149,10 @@ JSPraat.TextGrid.Tier.prototype.parseHeader = function() {
 		throw "Invalid Tier Header: end condition not reached while size is non-zero";
 	}
 };
+/**
+ * @method parseIntervals
+ * @private
+ */
 JSPraat.TextGrid.Tier.prototype.parseIntervals = function() {
 	if(this.header.numberOfIntervals === 0) { return; }
 
@@ -171,7 +192,10 @@ JSPraat.TextGrid.Tier.prototype.parseIntervals = function() {
 	}
 	if(i < this.lines.length) { throw "Invalid Tier Body: incomplete interval remains"; }
 };
-
+/**
+ * @method parsePoints
+ * @private
+ */
 JSPraat.TextGrid.Tier.prototype.parsePoints = function() {
 	if(this.header.numberOfPoints === 0) { return; }
 	// console.log('Parsing Intervals FROM ', this.startingLineIndexOfBody);
@@ -235,7 +259,7 @@ JSPraat.TextGrid.TextGrid = function(data) {
 /**
  * @method initializeFromData
  * @param {string} data A String containing the TextGrid Data
- * @memberOf TextGrid.TextGrid
+ * @memberOf TextGrid.TextGrid TimeSyncedGrid
  * @private
  */
 JSPraat.TextGrid.TextGrid.prototype.initializeFromData = function initializeFromData(data) {
@@ -289,7 +313,7 @@ JSPraat.TextGrid.TextGrid.prototype.checkHeader = function() {
 
 /**
  * @method parseTiers
- * @memberOf TextGrid.TextGrid
+ * @memberOf TextGrid.TextGrid TimeSyncedGrid
  * @private
  */
 JSPraat.TextGrid.TextGrid.prototype.parseTiers = function() {
@@ -330,7 +354,6 @@ JSPraat.TextGrid.TextGrid.prototype.parseHeader = function() {
 
 	var match;
 	for(var i = 0; i < this.lines.length; i++) {
-		// console.log(this.lines[i]);
 		if(this.lines[i].match(endOfHeaderRegex)) {
 			this.startingLineIndexOfTiers = i;
 			break;
@@ -366,7 +389,7 @@ JSPraat.TextGrid.TextGrid.prototype.parseHeader = function() {
 JSPraat.TimeSyncedGrid = {};
 /**
  * A TimeSyncedGrid displays exactly one WAV form
- * time-synchronized to exactly one TextGrid below
+ * time-synchronized to exactly one TextGrid below the WAV form.
  *
  * @class TimeSyncedGrid.TimeSyncedGrid
  * @memberOf JSPraat.TimeSyncedGrid
@@ -413,11 +436,23 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 	this.textgrid = null;
 	this.wav = null;
 };
-
+/**
+ * Sets the TextGrid to display in this TimeSyncedGrid
+ * The TextGrid is then immediately rendered.
+ * The TextGrid must be ready to render, to ensure this:
+ * call this function within 
+ * myTextGrid.ready(function() {...})
+ * @method setTextGrid
+ * @param {JSPraat.TextGrid.TextGrid} tgrid A TextGrid object that is ready for rendering.
+ */
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.setTextGrid = function(tgrid) {
 	this.textgrid = tgrid;
 	this.render();
 }
+/**
+ * Renders this TimeSyncedGrid
+ * @method render
+ */
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.render = function() {
 	this.c.width = this.c.$.innerWidth();
 	this.c.height = this.c.$.innerHeight();
@@ -429,7 +464,11 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.render = function() {
 		this.renderTextGrid();
 	}
 };
-
+/**
+ * Render the TextGrid for this TimeSyncedGrid
+ * @method TimeSyncedGrid
+ * @private
+ */
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 	var self = this;
 	var xmaxTier = Math.ceil(self.textgrid.header.xmax);

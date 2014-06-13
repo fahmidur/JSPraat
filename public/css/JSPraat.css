@@ -1,0 +1,59 @@
+body::-webkit-scrollbar{background-color:#ddd;border-left:1px solid #ccc;width:10px;}
+body::-webkit-scrollbar-thumb{background-color:#bbb;}
+#TSG-container {
+	/*border: 1px dashed #eee;*/
+	max-width:1500px;
+	margin: 0 auto;
+	min-height:500px;
+}
+#TSG-infotop {
+	/*background-color: #f2faf5;*/
+	background-color: #eee;
+	/*border-radius:3px;*/
+	height:20px;
+	color: white;
+	padding-left: 10px;
+	padding-right: 10px;
+	border-bottom: 1px solid #eee;
+	/*margin-bottom:10px;*/
+}
+#TSG-scroller {
+	overflow: auto;
+	border-left: 1px solid #eee;
+	border-right: 1px solid #eee;
+}
+#TSG-scroller::-webkit-scrollbar{background-color:#ddd;border-left:1px solid #ccc;width:10px;height:10px;}
+#TSG-scroller::-webkit-scrollbar-thumb{background-color:#bbb;}
+#TSG-scroller::-webkit-scrollbar-thumb:hover{background-color:orange;}
+.TSG-tier {
+	/*height: 40px;*/
+	height: 50px;
+	/*border-bottom: 1px dotted #eee;*/
+	/*padding:5px;*/
+}
+.TSG-tier.interval-tier {
+}
+.TSG-tier.point-tier {
+}
+.tier-central-line {
+	/*stroke: rgba(255, 0, 0, 0.5);*/
+	stroke: rgba(0,0,0,0.1);
+	stroke-width:1;
+}
+.tier-text {
+	stroke: transparent;
+	fill: #111;
+	font-family: Verdana;
+	font-size: 10px;
+	font-weight: normal;
+}
+.interval-group {
+	background-color: transparent;
+	fill: #fafafa;
+	stroke-width:1;
+	stroke:#eaeaea;
+	/*cursor: pointer;*/
+}
+.interval-group:hover {
+	fill: orange;
+}

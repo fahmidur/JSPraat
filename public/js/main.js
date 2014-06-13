@@ -1,13 +1,17 @@
 'use strict';
 
-// var one = '/sample-textgrids/nominated.TextGrid';
+$(function() {
+	// var one = '/sample-textgrids/nominated.TextGrid';
+	var one = '/sample-textgrids/iti-01.TextGrid';
+	var one_wav = '/sample-textgrids/iti-01.wav';
 
-var one = '/sample-textgrids/iti-01.TextGrid';
-var one_wav = '/sample-textgrids/iti-01.wav';
+	var tgone = new JSPraat.TextGrid.TextGrid(one);
+	var tgrid = new JSPraat.TimeSyncedGrid.TimeSyncedGrid('TSG-container');
 
-var tgone = new JSPraat.TextGrid.TextGrid(one);
-var tgrid = new JSPraat.TimeSyncedGrid.TimeSyncedGrid('container');
+	// for debugging
+	window.tgone = tgone;
 
-tgone.ready(function() {
-	tgrid.setTextGrid(tgone);
+	tgone.ready(function() {
+		tgrid.setTextGrid(tgone);
+	});
 });

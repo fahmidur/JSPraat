@@ -404,6 +404,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 	if($('#'+containerID).length == 0) {
 		throw "TimeSyncedGrid: container id='"+containerID+"' does not exist";
 	}
+	// this.xmult = 200;
 	this.xmult = 400;
 	this.cPrefix = 'TSG';
 	this.c = {
@@ -416,15 +417,46 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 			'$': null
 		},
 		'infotop': {
-			'ID': this.cPrefix+'-infotop',
+			'ID': this.cPrefix + '-infotop',
 			's': null,
 			'$': null,
+			'label': {
+				'ID': this.cPrefix + '-infotop-label',
+				's': null,
+				'$': null,
+			},
+			'controls': {
+				'ID': this.cPrefix + '-controls',
+				's': '.' + this.cPrefix + '-controls',
+				'$': null,
+				'zoomIn': {
+					'ID': this.cPrefix + '-controls-zoom-in',
+					's': '.' + this.cPrefix + '-controls-zoom-in',
+					'$': null
+				},
+				'zoomOut': {
+					'ID': this.cPrefix + '-controls-zoom-out',
+					's': '.' + this.cPrefix + '-controls-zoom-out',
+					'$': null
+				}
+			}
 		},
 		'tiers': {
 			'className': this.cPrefix+'-tier',
 			's': '.'+ this.cPrefix +'-tier',
 		}
 	};
+
+	this.initializeUI();
+
+	this.textgrid = null;
+	this.wav = null;
+};
+/**
+ * Create all UI Elements
+ * @method initializeUI
+ */
+JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.initializeUI = function() {
 	this.c.$.html("<div id='"+this.c.scroller.ID+"'></div>");
 	this.c.scroller.s = '#'+this.c.scroller.ID;
 	this.c.scroller.$ = $(this.c.scroller.s);
@@ -433,9 +465,19 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 	this.c.infotop.s = '#'+this.c.infotop.ID;
 	this.c.infotop.$ = $(this.c.infotop.s);
 
-	this.textgrid = null;
-	this.wav = null;
-};
+	this.c.infotop.$.prepend("<span id='"+this.c.infotop.label.ID+"'></span>");
+	this.c.infotop.label.s = '#' + this.c.infotop.label.ID;
+	this.c.infotop.label.$ = $(this.c.infotop.label.s);
+
+	this.c.infotop.$.prepend("<span id='"+this.c.infotop.controls.ID+"'></span>");
+	this.c.infotop.controls.s = '#' + this.c.infotop.controls.ID;
+	this.c.infotop.controls.$ = $(this.c.infotop.controls.s);
+
+	this.c.infotop.controls.$.append("<span id='"+this.c.infotop.controls.zoomIn.ID+"' class='control-btn'><i class='fa fa-fw fa-search-plus'></i></span>");
+	this.c.infotop.controls.zoomIn.s = '#' + this.c.infotop.controls.zoomIn.ID;
+	this.c.infotop.controls.zoomIn.$ = $(this.c.infotop.controls.zoomIn.s);
+
+}
 /**
  * Sets the TextGrid to display in this TimeSyncedGrid
  * The TextGrid is then immediately rendered.
@@ -472,10 +514,10 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.render = function() {
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 	var self = this;
 	var xmaxTier = Math.ceil(self.textgrid.header.xmax);
-	if((xmaxTier*self.xmult) < this.c.width) {
-		self.xmult = (this.c.width-2) / xmaxTier;
-	}
-	var xPosLast = xmaxTier * self.xmult;
+	// if((xmaxTier*self.xmult) < this.c.width) {
+	// 	self.xmult = (this.c.width-2) / xmaxTier;
+	// }
+	// var xPosLast = xmaxTier * self.xmult;
 	var tierHeight = null;
 
 	if(this.textgrid === null) { throw "TimeSyncedGrid: renderTextGrid found no textgrid"; }
@@ -533,7 +575,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			.attr('width', tierNameOffset)
 			.attr('x', 0)
 			.attr('y', halfTierHeight/2)
-			.attr('class', 'tier-name-box')
+			.attr('class', 'tier-name-box interval-tier-name-box')
 			.attr('title', data.header.name);
 
 			d3svg
@@ -544,9 +586,8 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			.attr('y', halfTierHeight/2)
 			.attr('dy', halfTierHeight/1.5)
 			.attr('dx', 2)
-			.attr('class', 'tier-name-text')
+			.attr('class', 'tier-name-text interval-tier-name-text')
 			.text(data.header.name);
-
 
 
 
@@ -563,7 +604,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			.attr('height', halfTierHeight)
 			.attr('class', 'interval-group')
 			.on('mouseenter', function(d) {
-				self.c.infotop.$.text("[" + d[0]+ ", " + d[1]+ "] " + d[2]);
+				self.c.infotop.label.$.text("[" + d[0]+ ", " + d[1]+ "] " + d[2]);
 			})
 			.on('mouseout', function(d) {
 				// self.c.infotop.$.text("");
@@ -601,7 +642,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			.attr('width', tierNameOffset)
 			.attr('x', 0)
 			.attr('y', halfTierHeight/2)
-			.attr('class', 'tier-name-box')
+			.attr('class', 'tier-name-box point-tier-name-box')
 			.attr('title', data.header.name);
 
 			d3svg
@@ -612,7 +653,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			.attr('y', halfTierHeight/2)
 			.attr('dy', halfTierHeight/1.5)
 			.attr('dx', 2)
-			.attr('class', 'tier-name-text')
+			.attr('class', 'tier-name-text point-tier-name-text')
 			.text(data.header.name);
 
 			var groups = d3svg

@@ -6,6 +6,11 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	min-height:500px;
 }
 #TSG-infotop {
+	-webkit-user-select: none; /* webkit (safari, chrome) browsers */
+    -moz-user-select: none; /* mozilla browsers */
+    -khtml-user-select: none; /* webkit (konqueror) browsers */
+    -ms-user-select: none; /* IE10+ */
+
 	background-color: #eee;
 	color: #2d2d2d;
 	height:15px;
@@ -23,9 +28,21 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 }
 #TSG-controls .control-btn {
 	/*background-color: red;*/
+	display: inline-block;
+	font-size: 12px;
+	padding:1px;
+	/*color: #aaa;*/
 	color: #2d2d2d;
 	cursor: pointer;
-	border: 1px solid #ddd;
+	border: 1px solid #e2e2e2;
+	transition-property: border, color, background;
+	transition-duration: 1s, 1s, 1s;
+	transition-timing-function: cubic-bezier(.06,1.47,.29,.87), cubic-bezier(.06,1.47,.29,.87), cubic-bezier(.06,1.47,.29,.87);
+}
+#TSG-controls .control-btn:hover {
+	border: 1px solid #2d2d2d;
+	background-color: #2d2d2d;
+	color: #fff;
 }
 #TSG-scroller {
 	overflow: auto;
@@ -47,10 +64,23 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	stroke: rgba(0,0,0,0.1);
 	stroke-width:1;
 }
-.tier-text, .tier-name-text {
+.tier-text {
 	stroke: transparent;
 	fill: #111;
-	font-family: Verdana;
+	font-family: monospace;
+	font-size: 10px;
+	font-weight: normal;
+}
+
+.tier-name-text {
+	-webkit-user-select: none; /* webkit (safari, chrome) browsers */
+    -moz-user-select: none; /* mozilla browsers */
+    -khtml-user-select: none; /* webkit (konqueror) browsers */
+    -ms-user-select: none; /* IE10+ */
+
+    stroke: transparent;
+	fill: #111;
+	font-family: monospace;
 	font-size: 10px;
 	font-weight: normal;
 }

@@ -248,11 +248,19 @@ JSPraat.TextGrid.TextGrid = function(data) {
 	this.readyFunc = null;
 
 	if( (match = data.match(pathRegex)) ) {
-		$.get(data, function(value) {
+		$.ajax({
+			url: data,
+			// beforeSend: function( xhr ) {
+			// 	// Note: Server should send file with correct charset header
+			// 	// You cannot rely upon a dumb-static server
+			// 	// xhr.overrideMimeType("text/plain; charset=utf-16be");
+			// }
+		}).done(function(value) {
+			// console.log(value);
 			self.initializeFromData(value);
 		});
 	} else {
-		this.initializeFromData(data);	
+		this.initializeFromData(data);
 	}
 };
 
@@ -404,8 +412,10 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 	if($('#'+containerID).length == 0) {
 		throw "TimeSyncedGrid: container id='"+containerID+"' does not exist";
 	}
-	// this.xmult = 200;
-	this.xmult = 400;
+	this.zoomFactor = 5;
+	this.xmultMin = 100;
+	this.xmultMax = 400;
+	this.xmult = this.xmultMax;
 	this.cPrefix = 'TSG';
 	this.c = {
 		'ID': containerID,
@@ -431,12 +441,12 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 				'$': null,
 				'zoomIn': {
 					'ID': this.cPrefix + '-controls-zoom-in',
-					's': '.' + this.cPrefix + '-controls-zoom-in',
+					's': '#' + this.cPrefix + '-controls-zoom-in',
 					'$': null
 				},
 				'zoomOut': {
 					'ID': this.cPrefix + '-controls-zoom-out',
-					's': '.' + this.cPrefix + '-controls-zoom-out',
+					's': '#' + this.cPrefix + '-controls-zoom-out',
 					'$': null
 				}
 			}
@@ -457,6 +467,8 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
  * @method initializeUI
  */
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.initializeUI = function() {
+	var self = this;
+
 	this.c.$.html("<div id='"+this.c.scroller.ID+"'></div>");
 	this.c.scroller.s = '#'+this.c.scroller.ID;
 	this.c.scroller.$ = $(this.c.scroller.s);
@@ -473,10 +485,50 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.initializeUI = function() {
 	this.c.infotop.controls.s = '#' + this.c.infotop.controls.ID;
 	this.c.infotop.controls.$ = $(this.c.infotop.controls.s);
 
-	this.c.infotop.controls.$.append("<span id='"+this.c.infotop.controls.zoomIn.ID+"' class='control-btn'><i class='fa fa-fw fa-search-plus'></i></span>");
-	this.c.infotop.controls.zoomIn.s = '#' + this.c.infotop.controls.zoomIn.ID;
+	this.c.infotop.controls.$.append("<span id='"+this.c.infotop.controls.zoomIn.ID+"' class='control-btn' data-name='zoomIn'><i class='fa fa-fw fa-search-plus'></i></span>");
 	this.c.infotop.controls.zoomIn.$ = $(this.c.infotop.controls.zoomIn.s);
 
+	this.c.infotop.controls.$.append("<span id='"+this.c.infotop.controls.zoomOut.ID+"' class='control-btn' data-name='zoomOut'><i class='fa fa-fw fa-search-minus'></i></span>");
+	this.c.infotop.controls.zoomOut.$ = $(this.c.infotop.controls.zoomOut.s);
+
+	this.c.infotop.controls.$.find('.control-btn').each(function(e) {
+		$(this).on('click', function(e) {
+			var name = $(this).data('name');	
+			var func = self['controlsEventHandler_'+name+'_click'];
+			if(typeof func !== 'function') { return; }
+			func.call(self, e);
+		});
+	});
+
+	// for(var k in this.c.infotop.controls) {
+	// 	var v = this.c.infotop.controls[k];
+	// 	if(typeof  v != 'object' || typeof v.ID != 'string') { continue; }
+	// 	console.log(k, v);
+
+	// 	var func = self['controlsEventHandler_'+k+'_click'];
+	// 	if(typeof func !== 'function') { continue; }
+
+	// 	v.$.on('click', function(e) {
+	// 		var name = $(this).data('name');	
+	// 		var func = self['controlsEventHandler_'+name+'_click'];
+	// 		func.call(self, e);
+	// 	});
+	// }
+}
+
+JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.controlsEventHandler_zoomIn_click = function(e) {
+	console.log('TimeSyncedGrid Event: zoomIn');
+	this.xmult += 1 + this.zoomFactor;
+	this.render();
+}
+
+JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.controlsEventHandler_zoomOut_click = function(e) {
+	console.log('TimeSyncedGrid Event: zoomOut');
+	var newMult = this.xmult - this.zoomFactor;
+	if(newMult > this.xmultMin) {
+		this.xmult = newMult;
+		this.render();
+	}
 }
 /**
  * Sets the TextGrid to display in this TimeSyncedGrid
@@ -499,6 +551,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.render = function() {
 	this.c.width = this.c.$.innerWidth();
 	this.c.height = this.c.$.innerHeight();
 	
+	this.c.scroller.$.html('');
 	if(this.wav) {
 		this.renderWav();
 	}

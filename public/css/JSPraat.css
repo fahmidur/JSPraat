@@ -1,9 +1,13 @@
 body::-webkit-scrollbar{background-color:#ddd;border-left:1px solid #ccc;width:10px;}
 body::-webkit-scrollbar-thumb{background-color:#bbb;}
 #TSG-container {
-	max-width:1500px;
+	max-width:1200px;
 	margin: 0 auto;
 	min-height:500px;
+	-webkit-user-select: none; /* webkit (safari, chrome) browsers */
+    -moz-user-select: none; /* mozilla browsers */
+    -khtml-user-select: none; /* webkit (konqueror) browsers */
+    -ms-user-select: none; /* IE10+ */
 }
 #TSG-infotop {
 	-webkit-user-select: none; /* webkit (safari, chrome) browsers */
@@ -12,14 +16,31 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
     -ms-user-select: none; /* IE10+ */
 
 	background-color: #eee;
+	/*background-color: transparent;*/
 	color: #2d2d2d;
-	height:15px;
 	padding-left: 0px;
 	padding-right: 0px;
-	border-bottom: 1px solid #eee;
+	/*border-bottom: 1px solid #eee;*/
 	font-family:"Helvetica Neue",Arial,Helvetica,sans-serif;
 	font-weight: bold;
-	font-size:12px;
+	font-size:14px;
+	cursor:default;
+}
+#TSG-current-time {
+	display: inline-block;
+	/*min-width:50px;*/
+	float: right;
+	padding-right:5px;
+	padding-left:5px;
+	/*color: #4FD5D6;*/
+	color: #2d2d2d;
+	/*color: white;*/
+	background-color: #ddd;
+	padding-top:1px;
+	padding-bottom:1px;
+	border-left: 1px solid #ccc;
+	text-shadow: 2px 2px 2px #eee;
+	/*text-shadow: 1px 1px 2px #999;*/
 }
 #TSG-controls {
 	display: inline-block;
@@ -29,7 +50,6 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 #TSG-controls .control-btn {
 	/*background-color: red;*/
 	display: inline-block;
-	font-size: 12px;
 	padding:1px;
 	/*color: #aaa;*/
 	color: #2d2d2d;
@@ -55,8 +75,10 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 
 .TSG-tier {
 	height: 50px;
+	cursor:default;
 }
 .TSG-tier.interval-tier {
+
 }
 .TSG-tier.point-tier {
 }
@@ -70,6 +92,10 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	font-family: monospace;
 	font-size: 10px;
 	font-weight: normal;
+	-webkit-user-select: none; /* webkit (safari, chrome) browsers */
+    -moz-user-select: none; /* mozilla browsers */
+    -khtml-user-select: none; /* webkit (konqueror) browsers */
+    -ms-user-select: none; /* IE10+ */
 }
 
 .tier-name-text {

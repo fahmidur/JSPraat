@@ -436,6 +436,11 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 				's': null,
 				'$': null,
 			},
+			'currentTime': {
+				ID: this.cPrefix + '-current-time',
+				's': null,
+				'$': null,
+			},
 			'controls': {
 				'ID': this.cPrefix + '-controls',
 				's': '.' + this.cPrefix + '-controls',
@@ -481,6 +486,10 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.initializeUI = function() {
 	this.c.infotop.$.prepend("<span id='"+this.c.infotop.label.ID+"'></span>");
 	this.c.infotop.label.s = '#' + this.c.infotop.label.ID;
 	this.c.infotop.label.$ = $(this.c.infotop.label.s);
+
+	this.c.infotop.$.append("<span id='"+this.c.infotop.currentTime.ID+"'></span>");
+	this.c.infotop.currentTime.s = '#' + this.c.infotop.currentTime.ID;
+	this.c.infotop.currentTime.$ = $(this.c.infotop.currentTime.s);
 
 	this.c.infotop.$.prepend("<span id='"+this.c.infotop.controls.ID+"'></span>");
 	this.c.infotop.controls.s = '#' + this.c.infotop.controls.ID;
@@ -626,10 +635,9 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 	for(var i = 0; i < rTiers.length; i++) {
 		var svg = rTiers[i];
 		var data = svg.__data__;
+		var d3svg = d3.select(svg);
 
 		if(data.isIntervalTier()) {
-			var d3svg = d3.select(svg);
-
 			d3svg
 			.append('rect')
 			.attr('height', halfTierHeight)
@@ -665,7 +673,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			.attr('height', halfTierHeight)
 			.attr('class', 'interval-group')
 			.on('mouseenter', function(d) {
-				self.c.infotop.label.$.text("[" + d[0]+ ", " + d[1]+ "] " + d[2]);
+				self.c.infotop.label.$.html("[" + d[0]+ ", " + d[1]+ "] &nbsp;" + d[2]);
 			})
 			.on('mouseout', function(d) {
 				
@@ -698,10 +706,8 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 				return d[2];
 			})
 			.attr('class', 'tier-text');
-		}
+		} /* end if */
 		if(data.isPointTier()) {
-			var d3svg = d3.select(svg);
-
 			d3svg
 			.append('rect')
 			.attr('height', halfTierHeight)
@@ -767,7 +773,16 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 				return d[1];
 			})
 			.attr('class', 'tier-text');
-		}
-	}
+		} /* end if */
 
+			
+	} /* end for */
+
+	self.c.scroller.$.find('svg').on('click', function(e) {
+		var posX = self.c.scroller.$.scrollLeft() + (e.pageX - self.c.scroller.$.position().left) - tierNameOffset;
+		if(posX < 0) { posX = 0; }
+		var posXtime = posX / self.xmult;
+		// console.log(posX, posXtime);
+		self.c.infotop.currentTime.$.text(posXtime);
+	});
 }

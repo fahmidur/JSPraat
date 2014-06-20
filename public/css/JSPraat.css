@@ -35,10 +35,12 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	/*color: #4FD5D6;*/
 	color: #2d2d2d;
 	/*color: white;*/
-	background-color: #ddd;
-	padding-top:1px;
-	padding-bottom:1px;
-	border-left: 1px solid #ccc;
+	/*background-color: #ddd;*/
+	background-color: #fafafa;
+	/*padding-top:1px;*/
+	/*padding-bottom:1px;*/
+	/*border-left: 1px solid #ccc;*/
+	border: 1px solid #eee;
 	text-shadow: 2px 2px 2px #eee;
 	/*text-shadow: 1px 1px 2px #999;*/
 }

@@ -424,7 +424,8 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 		'$': $('#'+containerID),
 		'scroller': {
 			'ID': this.cPrefix + '-scroller',
-			'$': null
+			'$': null,
+			'pos': 0
 		},
 		'infotop': {
 			'ID': this.cPrefix + '-infotop',
@@ -525,10 +526,11 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.controlsEventHandler_zoomIn_clic
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.controlsEventHandler_zoomOut_click = function(e) {
 	console.log('TimeSyncedGrid Event: zoomOut');
 	var newMult = this.xmult - this.zoomFactor;
-	if(newMult > this.xmultMin) {
+	if(newMult >= this.xmultMin) {
 		this.xmult = newMult;
 		this.render();
 	}
+	console.log(this.xmult);
 }
 /**
  * Sets the TextGrid to display in this TimeSyncedGrid
@@ -551,6 +553,10 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.render = function() {
 	this.c.width = this.c.$.innerWidth();
 	this.c.height = this.c.$.innerHeight();
 	
+	
+	this.c.scroller.pos = this.c.scroller.$.scrollLeft();
+	console.log(this.c.scroller.pos);
+
 	this.c.scroller.$.html('');
 	if(this.wav) {
 		this.renderWav();
@@ -558,6 +564,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.render = function() {
 	if(this.textgrid) {
 		this.renderTextGrid();
 	}
+	this.c.scroller.$.scrollLeft(this.c.scroller.pos);
 };
 /**
  * Render the TextGrid for this TimeSyncedGrid
@@ -607,6 +614,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 	// .attr('x2', function(d) { return xPosLast; })
 	// .attr('y2', halfTierHeight)
 	// .attr('class', 'tier-central-line');
+
 	var rTiers = tiers[0];
 	var tierNameOffset = 0;
 	for(var i = 0; i < rTiers.length; i++) {
@@ -660,7 +668,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 				self.c.infotop.label.$.text("[" + d[0]+ ", " + d[1]+ "] " + d[2]);
 			})
 			.on('mouseout', function(d) {
-				// self.c.infotop.$.text("");
+				
 			});
 
 			groups
@@ -682,6 +690,11 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			.attr('dy', halfTierHeight/1.5)
 			.attr('dx', 2)
 			.text(function(d) {
+				var tbox = $(this).prev();
+				if((d[2].length*10) >= parseInt(tbox.attr('width'))) {
+					tbox.attr('class', 'interval-box-too-small');
+					return ""; 
+				}
 				return d[2];
 			})
 			.attr('class', 'tier-text');
@@ -720,7 +733,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			.attr('height', halfTierHeight)
 			.attr('class', 'point-group')
 			.on('mouseenter', function(d) {
-				self.c.infotop.$.text(d[0] + ": " + d[1]);
+				self.c.infotop.label.$.text(d[0] + ": " + d[1]);
 			})
 			.on('mouseout', function(d) {
 				
@@ -746,6 +759,11 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			.attr('dy', halfTierHeight/1.5)
 			.attr('dx', 2)
 			.text(function(d) {
+				var tbox = $(this).prev();
+				if((d[1].length*10) > parseInt(tbox.attr('width'))) {
+					tbox.attr('class', 'interval-box-too-small');
+					return "";
+				}
 				return d[1];
 			})
 			.attr('class', 'tier-text');

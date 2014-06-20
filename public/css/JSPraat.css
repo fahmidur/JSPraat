@@ -100,6 +100,17 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 .interval-box {
 
 }
+.interval-box-too-small {
+	fill: rgba(255, 0,0, 0.1);
+	stroke: rgba(255, 0,0, 0.15);
+	stroke-width: 1px;
+	transition-property: fill;
+	transition-duration: 1s;
+	transition-timing-function: cubic-bezier(.06,1.47,.29,.87);
+}
+.interval-box-too-small:hover {
+	fill: rgba(255, 0,0, 0.4);
+}
 .point-box {
 
 }

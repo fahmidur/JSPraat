@@ -24,11 +24,10 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	font-family:"Helvetica Neue",Arial,Helvetica,sans-serif;
 	font-weight: bold;
 	font-size:14px;
-	cursor:default;
+	cursor:crosshair;
 }
 #TSG-current-time {
 	display: inline-block;
-	/*min-width:50px;*/
 	float: right;
 	padding-right:5px;
 	padding-left:5px;
@@ -44,6 +43,11 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	text-shadow: 2px 2px 2px #eee;
 	/*text-shadow: 1px 1px 2px #999;*/
 }
+#TSG-current-time::after {
+	font-family: FontAwesome;
+	content: " \f017";
+}
+
 #TSG-controls {
 	display: inline-block;
 	/*border: 1px solid red;*/
@@ -77,7 +81,7 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 
 .TSG-tier {
 	height: 50px;
-	cursor:default;
+	cursor:crosshair;
 }
 .TSG-tier.interval-tier {
 
@@ -128,6 +132,11 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 .interval-box {
 
 }
+
+.point-box {
+
+}
+
 .interval-box-too-small {
 	fill: rgba(255, 0,0, 0.1);
 	stroke: rgba(255, 0,0, 0.15);
@@ -139,9 +148,7 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 .interval-box-too-small:hover {
 	fill: rgba(255, 0,0, 0.4);
 }
-.point-box {
 
-}
 .interval-group, .point-group {
 	background-color: transparent;
 	fill: #fafafa;
@@ -153,4 +160,10 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 }
 .interval-group:hover, .point-group:hover {
 	fill: #4FD5D6;
+	stroke: #777;
+}
+
+.current-time-marker {
+	fill: rgba(255,0,0,0.5);
+	stroke: rgba(255,0,0,0.3);
 }

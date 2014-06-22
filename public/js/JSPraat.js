@@ -417,6 +417,8 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 	this.xmultMax = 400;
 	this.xmult = this.xmultMax;
 	this.cPrefix = 'TSG';
+	this.currentTime = 0.0;
+
 	this.c = {
 		'ID': containerID,
 		'width': null,
@@ -460,7 +462,8 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 		'tiers': {
 			'className': this.cPrefix+'-tier',
 			's': '.'+ this.cPrefix +'-tier',
-		}
+			'nfo': {}
+		},
 	};
 
 	this.initializeUI();
@@ -490,6 +493,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.initializeUI = function() {
 	this.c.infotop.$.append("<span id='"+this.c.infotop.currentTime.ID+"'></span>");
 	this.c.infotop.currentTime.s = '#' + this.c.infotop.currentTime.ID;
 	this.c.infotop.currentTime.$ = $(this.c.infotop.currentTime.s);
+	this.c.infotop.currentTime.$.text('-');
 
 	this.c.infotop.$.prepend("<span id='"+this.c.infotop.controls.ID+"'></span>");
 	this.c.infotop.controls.s = '#' + this.c.infotop.controls.ID;
@@ -524,13 +528,13 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.initializeUI = function() {
 	// 		func.call(self, e);
 	// 	});
 	// }
-}
+};
 
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.controlsEventHandler_zoomIn_click = function(e) {
 	console.log('TimeSyncedGrid Event: zoomIn');
 	this.xmult += 1 + this.zoomFactor;
 	this.render();
-}
+};
 
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.controlsEventHandler_zoomOut_click = function(e) {
 	console.log('TimeSyncedGrid Event: zoomOut');
@@ -540,7 +544,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.controlsEventHandler_zoomOut_cli
 		this.render();
 	}
 	console.log(this.xmult);
-}
+};
 /**
  * Sets the TextGrid to display in this TimeSyncedGrid
  * The TextGrid is then immediately rendered.
@@ -553,7 +557,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.controlsEventHandler_zoomOut_cli
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.setTextGrid = function(tgrid) {
 	this.textgrid = tgrid;
 	this.render();
-}
+};
 /**
  * Renders this TimeSyncedGrid
  * @method render
@@ -706,6 +710,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 				return d[2];
 			})
 			.attr('class', 'tier-text');
+
 		} /* end if */
 		if(data.isPointTier()) {
 			d3svg
@@ -775,14 +780,40 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			.attr('class', 'tier-text');
 		} /* end if */
 
-			
+		// Draw currentTimeMarker
+		var timeMarker = d3svg
+		.append('rect')
+		.attr('width', 1)
+		.attr('height', tierHeight)
+		.attr('x', this.currentTime * this.xmult)
+		.attr('y', 0)
+		.attr('class', 'current-time-marker');
+
+		d3svg.attr('data-tier-name', data.header.name);
+		self.c.tiers.nfo[data.header.name] = {
+			'timeMarker': timeMarker
+		};
 	} /* end for */
 
+	self.c.tiers.tierNameOffset = tierNameOffset;
 	self.c.scroller.$.find('svg').on('click', function(e) {
-		var posX = self.c.scroller.$.scrollLeft() + (e.pageX - self.c.scroller.$.position().left) - tierNameOffset;
-		if(posX < 0) { posX = 0; }
-		var posXtime = posX / self.xmult;
-		// console.log(posX, posXtime);
-		self.c.infotop.currentTime.$.text(posXtime);
+		var xPixels = self.c.scroller.$.scrollLeft() + (e.pageX - self.c.scroller.$.position().left) - tierNameOffset - 1;
+		if(xPixels < 0) { xPixels  = 0; }
+
+		self.currentTime = xPixels / self.xmult;
+		console.log(xPixels, self.currentTime);
+
+		self.c.infotop.currentTime.$.text(self.currentTime);
+		self.updateTimeMarker();
 	});
+};
+JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.updateTimeMarker = function() {
+	var self = this;
+	for(var k in self.c.tiers.nfo) {
+		var timeMarker = self.c.tiers.nfo[k].timeMarker;
+		timeMarker
+		.transition()
+		.duration(200)
+		.attr('x', self.currentTime * self.xmult + self.c.tiers.tierNameOffset);
+	}
 }

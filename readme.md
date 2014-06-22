@@ -1,6 +1,6 @@
 ## Welcome to JSPraat
 
-JSPraat is a work in progress. It aims makes some Praat features available via a web-based interface.
+JSPraat is a work in progress. It aims to makes some Praat features available via a web-based interface.
 Work has begun in providing a compatibility layer with Praat's TextGrid format. 
 
 ![Screenshot of TimeSyncedGrid](https://raw.githubusercontent.com/fahmidur/JSPraat/master/screenshots/jspraat_ss004.png "Screenshot of TimeSyncedGrid")

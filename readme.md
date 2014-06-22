@@ -5,7 +5,7 @@ Work has begun in providing a compatibility layer with Praat's TextGrid format.
 
 * JSPraat.TextGrid.TextGrid -  A JS class for representing a single TextGrid. It has been tested on a small set of examples including interval tiers and point tiers. The constructor takes either a path to a .TextGrid file or takes the contents of a TextGrid file. See main.js for an example.
 
-![Screenshot of TimeSyncedGrid](https://raw.githubusercontent.com/fahmidur/JSPraat/master/screenshots/jspraat_ss002.png "Screenshot of TimeSyncedGrid")
+![Screenshot of TimeSyncedGrid](https://raw.githubusercontent.com/fahmidur/JSPraat/master/screenshots/jspraat_ss003.png "Screenshot of TimeSyncedGrid")
 
 
 

@@ -23,7 +23,7 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	/*border-bottom: 1px solid #eee;*/
 	font-family:"Helvetica Neue",Arial,Helvetica,sans-serif;
 	font-weight: bold;
-	font-size:14px;
+	font-size:16px;
 	cursor:crosshair;
 }
 #TSG-current-time {
@@ -50,8 +50,26 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 
 #TSG-controls {
 	display: inline-block;
-	/*border: 1px solid red;*/
 	margin-right: 10px;
+}
+#TSG-controls #TSG-controls-zoom-slider {
+	height:10px;
+	outline: none;
+}
+#TSG-controls #TSG-controls-zoom-slider::-webkit-slider-thumb  {
+    background-color: #222;
+    opacity: 0.5;
+    width: 10px;
+    height: 16px;
+    font-size: 12px;
+}
+#TSG-controls-zoom-indicator {
+	font-size: 13px;
+	font-weight: normal;
+	color: #5d5d5d;
+}
+#TSG-controls-zoom-indicator::after {
+	content: '%';
 }
 #TSG-controls .control-btn {
 	/*background-color: red;*/

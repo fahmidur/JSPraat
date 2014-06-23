@@ -408,7 +408,6 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 	if(! (this instanceof JSPraat.TimeSyncedGrid.TimeSyncedGrid)) {
 		return new JSPraat.TimeSyncedGrid.TimeSyncedGrid(containerID);
 	}
-
 	if($('#'+containerID).length == 0) {
 		throw "TimeSyncedGrid: container id='"+containerID+"' does not exist";
 	}
@@ -456,6 +455,16 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 					'ID': this.cPrefix + '-controls-zoom-out',
 					's': '#' + this.cPrefix + '-controls-zoom-out',
 					'$': null
+				},
+				'zoomSlider': {
+					'ID': this.cPrefix + '-controls-zoom-slider',
+					's': '#' + this.cPrefix + '-controls-zoom-slider',
+					'$': null
+				},
+				'zoomIndicator': {
+					'ID': this.cPrefix + '-controls-zoom-indicator',
+					's': '#' + this.cPrefix + '-controls-zoom-indicator',
+					'$': null
 				}
 			}
 		},
@@ -474,6 +483,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 /**
  * Create all UI Elements
  * @method initializeUI
+ * @private
  */
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.initializeUI = function() {
 	var self = this;
@@ -505,6 +515,20 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.initializeUI = function() {
 	this.c.infotop.controls.$.append("<span id='"+this.c.infotop.controls.zoomOut.ID+"' class='control-btn' data-name='zoomOut'><i class='fa fa-fw fa-search-minus'></i></span>");
 	this.c.infotop.controls.zoomOut.$ = $(this.c.infotop.controls.zoomOut.s);
 
+	this.c.infotop.controls.$.append('<input type="range" name="points" min="'+this.xmultMin+'" max="'+this.xmultMax+'" id="'+this.c.infotop.controls.zoomSlider.ID+'">');
+	this.c.infotop.controls.zoomSlider.$ = $(this.c.infotop.controls.zoomSlider.s);
+
+	this.c.infotop.controls.zoomSlider.$.on('change', function(e) {
+		self.xmult = $(this).val();
+		self.updateZoomControls();
+		self.render();
+	});
+
+	this.c.infotop.controls.$.append('<span id="'+this.c.infotop.controls.zoomIndicator.ID+'">'+this.xmult+'</span>');
+	this.c.infotop.controls.zoomIndicator.$ = $(this.c.infotop.controls.zoomIndicator.s);
+
+
+
 	this.c.infotop.controls.$.find('.control-btn').each(function(e) {
 		$(this).on('click', function(e) {
 			var name = $(this).data('name');	
@@ -528,12 +552,19 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.initializeUI = function() {
 	// 		func.call(self, e);
 	// 	});
 	// }
+	this.updateZoomControls();
 };
+JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.updateZoomControls = function() {
+	console.log('updating zoom controls ' + this.xmult);
+	this.c.infotop.controls.zoomIndicator.$.text( Math.round((this.xmult - this.xmultMin) / (this.xmultMax - this.xmultMin) * 100) );
+	this.c.infotop.controls.zoomSlider.$.val(this.xmult);
+}
 
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.controlsEventHandler_zoomIn_click = function(e) {
 	console.log('TimeSyncedGrid Event: zoomIn');
 	this.xmult += 1 + this.zoomFactor;
 	this.render();
+	this.updateZoomControls();
 };
 
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.controlsEventHandler_zoomOut_click = function(e) {
@@ -544,6 +575,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.controlsEventHandler_zoomOut_cli
 		this.render();
 	}
 	console.log(this.xmult);
+	this.updateZoomControls();
 };
 /**
  * Sets the TextGrid to display in this TimeSyncedGrid
@@ -572,7 +604,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.render = function() {
 
 	this.c.scroller.$.html('');
 	if(this.wav) {
-		this.renderWav();
+		this.renderWAV();
 	}
 	if(this.textgrid) {
 		this.renderTextGrid();
@@ -581,7 +613,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.render = function() {
 };
 /**
  * Render the TextGrid for this TimeSyncedGrid
- * @method TimeSyncedGrid
+ * @method renderTextGrid
  * @private
  */
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
@@ -807,6 +839,20 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 		self.updateTimeMarker();
 	});
 };
+/**
+ * Render the WAV file for this TimeSyncedGrid.
+ * TODO
+ * @method renderWAV
+ * @private
+ */
+JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderWAV = function() {
+	
+}
+/**
+ * Move the timeMarker for each tier to the currentTime
+ * @method updateTimeMarker
+ * @private
+ */
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.updateTimeMarker = function() {
 	var self = this;
 	for(var k in self.c.tiers.nfo) {

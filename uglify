@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+uglifyjs public/js/JSPraat.js > public/js/JSPraat.ugly.js

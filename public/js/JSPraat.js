@@ -415,6 +415,8 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 	this.xmultMin = 100;
 	this.xmultMax = 400;
 	this.xmult = this.xmultMax;
+	this.timePrecision = 3;
+
 	this.cPrefix = 'TSG';
 	this.currentTime = 0.0;
 
@@ -520,7 +522,6 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.initializeUI = function() {
 
 	this.c.infotop.controls.zoomSlider.$.on('change', function(e) {
 		self.xmult = $(this).val();
-		self.updateZoomControls();
 		self.render();
 	});
 
@@ -564,18 +565,14 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.controlsEventHandler_zoomIn_clic
 	console.log('TimeSyncedGrid Event: zoomIn');
 	this.xmult += 1 + this.zoomFactor;
 	this.render();
-	this.updateZoomControls();
 };
 
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.controlsEventHandler_zoomOut_click = function(e) {
 	console.log('TimeSyncedGrid Event: zoomOut');
 	var newMult = this.xmult - this.zoomFactor;
-	if(newMult >= this.xmultMin) {
-		this.xmult = newMult;
-		this.render();
-	}
-	console.log(this.xmult);
-	this.updateZoomControls();
+	if(newMult < this.xmultMin) { return; }
+	this.xmult = newMult;
+	this.render();
 };
 /**
  * Sets the TextGrid to display in this TimeSyncedGrid
@@ -601,15 +598,20 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.render = function() {
 	
 	this.c.scroller.pos = this.c.scroller.$.scrollLeft();
 	console.log(this.c.scroller.pos);
+	this.c.scroller.$.html(''); //clear everything
 
-	this.c.scroller.$.html('');
+
+	this.updateZoomControls();
+
 	if(this.wav) {
 		this.renderWAV();
 	}
 	if(this.textgrid) {
 		this.renderTextGrid();
 	}
+
 	this.c.scroller.$.scrollLeft(this.c.scroller.pos);
+	this.updateTimeMarker();
 };
 /**
  * Render the TextGrid for this TimeSyncedGrid
@@ -709,7 +711,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			.attr('height', halfTierHeight)
 			.attr('class', 'interval-group')
 			.on('mouseenter', function(d) {
-				self.c.infotop.label.$.html("[" + d[0]+ ", " + d[1]+ "] &nbsp;" + d[2]);
+				self.c.infotop.label.$.html("[" + d[0].toFixed(self.timePrecision)+ ", " + d[1].toFixed(self.timePrecision)+ "] &nbsp;" + d[2]);
 			})
 			.on('mouseout', function(d) {
 				
@@ -776,7 +778,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			.attr('height', halfTierHeight)
 			.attr('class', 'point-group')
 			.on('mouseenter', function(d) {
-				self.c.infotop.label.$.text(d[0] + ": " + d[1]);
+				self.c.infotop.label.$.text(d[0].toFixed(self.timePrecision) + ": " + d[1]);
 			})
 			.on('mouseout', function(d) {
 				
@@ -835,7 +837,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 		self.currentTime = xPixels / self.xmult;
 		console.log(xPixels, self.currentTime);
 
-		self.c.infotop.currentTime.$.text(self.currentTime);
+		self.c.infotop.currentTime.$.text(self.currentTime.toFixed(self.timePrecision));
 		self.updateTimeMarker();
 	});
 };
@@ -858,8 +860,9 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.updateTimeMarker = function() {
 	for(var k in self.c.tiers.nfo) {
 		var timeMarker = self.c.tiers.nfo[k].timeMarker;
 		timeMarker
-		.transition()
-		.duration(200)
+		// .transition()
+		// .duration(200)
 		.attr('x', self.currentTime * self.xmult + self.c.tiers.tierNameOffset);
 	}
+	this.c.infotop.currentTime.$.text(this.currentTime.toFixed(this.timePrecision));
 }

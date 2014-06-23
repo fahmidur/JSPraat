@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+yuicompressor public/js/JSPraat.js > public/js/JSPraat.mini.js

@@ -184,3 +184,15 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	fill: rgba(255,0,0,0.5);
 	stroke: rgba(255,0,0,0.3);
 }
+.tier-name-floater {
+	fill: transparent;
+	opacity: 0;
+}
+.tier-name-floater-text {
+
+	font-weight: bold;
+	text-transform: uppercase;
+	fill: #ccc;
+	font-size:8px;
+	font-family: monospace;
+}

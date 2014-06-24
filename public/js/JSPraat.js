@@ -411,7 +411,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 	if($('#'+containerID).length == 0) {
 		throw "TimeSyncedGrid: container id='"+containerID+"' does not exist";
 	}
-	this.zoomFactor = 10;
+	this.zoomFactor = 20;
 	this.xmultMin = 100;
 	this.xmultMax = 800;
 	this.xmult = this.xmultMin + (this.xmultMax - this.xmultMin) / 2;
@@ -421,6 +421,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 	this.currentTime = 0.0;
 
 	this.currentTimeMarkerPosition = null;
+	this.tierNameOffset = null;
 
 	this.c = {
 		'ID': containerID,
@@ -483,6 +484,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 
 	this.textgrid = null;
 	this.wav = null;
+
 };
 /**
  * Create all UI Elements
@@ -531,6 +533,22 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.initializeUI = function() {
 	this.c.infotop.controls.zoomIndicator.$ = $(this.c.infotop.controls.zoomIndicator.s);
 
 
+	this.c.scroller.$.on('scroll', function(e) {
+		if(!self.tierNameOffset) { return; }
+		var x = $(this).scrollLeft();
+		var $floaters = self.c.scroller.$.find('.tier-name-floater');
+		if(x > self.tierNameOffset) {
+			$floaters.animate({'opacity': 1}, 200);
+			for(var k in self.c.tiers.nfo) {
+				self.c.tiers.nfo[k].nameFloater
+				.transition()
+				.duration(700)
+				.attr('transform', 'translate('+x+', 0)');
+			}
+		} else {
+			$floaters.animate({'opacity': 0}, 100);
+		}
+	});
 
 	this.c.infotop.controls.$.find('.control-btn').each(function(e) {
 		$(this).on('click', function(e) {
@@ -555,6 +573,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.initializeUI = function() {
 	// 		func.call(self, e);
 	// 	});
 	// }
+
 	this.updateZoomControls();
 };
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.updateZoomControls = function() {
@@ -606,7 +625,6 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.render = function() {
 		pTimeMarkerOffset = $(this.c.tiers.nfo[k].timeMarker[0][0]).offset().left;
 		break;
 	}
-	console.log('*** pTimeMarkerOffset = ' + pTimeMarkerOffset);
 
 	this.c.scroller.pos = this.c.scroller.$.scrollLeft();
 	this.c.scroller.$.html(''); //clear everything
@@ -684,17 +702,16 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 		var data = svg.__data__;
 		var d3svg = d3.select(svg);
 
-		if(data.isIntervalTier()) {
-			d3svg
+		var tierNameBox = d3svg
 			.append('rect')
 			.attr('height', halfTierHeight)
 			.attr('width', tierNameOffset)
 			.attr('x', 0)
 			.attr('y', halfTierHeight/2)
-			.attr('class', 'tier-name-box interval-tier-name-box')
+			.attr('class', 'tier-name-box')
 			.attr('title', data.header.name);
 
-			d3svg
+		var tierNameText = d3svg
 			.append('text')
 			.attr('height', halfTierHeight)
 			.attr('width', tierNameOffset)
@@ -702,12 +719,13 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			.attr('y', halfTierHeight/2)
 			.attr('dy', halfTierHeight/1.5)
 			.attr('dx', 2)
-			.attr('class', 'tier-name-text interval-tier-name-text')
+			.attr('class', 'tier-name-text')
 			.text(data.header.name);
 
+		var groups = null;
 
-
-			var groups = d3svg
+		if(data.isIntervalTier()) {
+			groups = d3svg
 			.selectAll('g').data(data.intervals)
 			.enter()
 			.append('g')
@@ -756,27 +774,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 
 		} /* end if */
 		if(data.isPointTier()) {
-			d3svg
-			.append('rect')
-			.attr('height', halfTierHeight)
-			.attr('width', tierNameOffset)
-			.attr('x', 0)
-			.attr('y', halfTierHeight/2)
-			.attr('class', 'tier-name-box point-tier-name-box')
-			.attr('title', data.header.name);
-
-			d3svg
-			.append('text')
-			.attr('height', halfTierHeight)
-			.attr('width', tierNameOffset)
-			.attr('x', 0)
-			.attr('y', halfTierHeight/2)
-			.attr('dy', halfTierHeight/1.5)
-			.attr('dx', 2)
-			.attr('class', 'tier-name-text point-tier-name-text')
-			.text(data.header.name);
-
-			var groups = d3svg
+			groups = d3svg
 			.selectAll('g').data(data.points)
 			.enter()
 			.append('g')
@@ -833,11 +831,39 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 		.attr('y', 0)
 		.attr('class', 'current-time-marker');
 
+		
+
+
+		//Draw the tierFloater
+		tierFloaterGroup = d3svg
+		.append('g')
+		.attr('transform', "translate("+0+","+0+")")
+		.attr('width', tierNameOffset)
+		.attr('height', halfTierHeight/2)
+		.attr('class', 'tier-name-floater')
+
+		tierFloaterGroup
+		.append('rect')
+		.attr('width', tierNameOffset)
+		.attr('height', halfTierHeight/2);
+
+		tierFloaterGroup
+		.append('text')
+		.attr('x', 0)
+		.attr('y', 0)
+		.attr('dy', halfTierHeight/2.5)
+		.attr('dx', 2)
+		.attr('class', 'tier-name-floater-text')
+		.text(data.header.name);
+
 		d3svg.attr('data-tier-name', data.header.name);
 		self.c.tiers.nfo[data.header.name] = {
-			'timeMarker': timeMarker
+			'timeMarker': timeMarker,
+			'nameFloater': tierFloaterGroup
 		};
+
 	} /* end for */
+
 
 	self.c.tiers.tierNameOffset = tierNameOffset;
 	self.c.scroller.$.find('svg').on('click', function(e) {
@@ -851,7 +877,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 		self.updateTimeMarker();
 	});
 
-
+	self.tierNameOffset = tierNameOffset;
 };
 /**
  * Render the WAV file for this TimeSyncedGrid.

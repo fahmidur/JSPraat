@@ -421,7 +421,6 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 	this.currentTime = 0.0;
 
 	this.currentTimeMarkerPosition = null;
-	this.currentTimeMarkerOffset = null;
 
 	this.c = {
 		'ID': containerID,
@@ -559,12 +558,10 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.initializeUI = function() {
 	this.updateZoomControls();
 };
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.updateZoomControls = function() {
-	console.log('updating zoom controls ' + this.xmult);
+	console.log('updating zoom controls. xmult=' + this.xmult + " zoomFactor=" + this.zoomFactor);
 
 	this.c.infotop.controls.zoomIndicator.$.text( Math.round((this.xmult - this.xmultMin) / (this.xmultMax - this.xmultMin) * 100) );
 	this.c.infotop.controls.zoomSlider.$.val(this.xmult);
-
-	console.log('updating zoom controls. xmult=' + this.xmult + " zoomFactor=" + this.zoomFactor);
 }
 
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.controlsEventHandler_zoomIn_click = function(e) {
@@ -600,22 +597,34 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.setTextGrid = function(tgrid) {
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.render = function() {
 	this.c.width = this.c.$.innerWidth();
 	this.c.height = this.c.$.innerHeight();
-	
-	
+
+	var pTimeMarkerOffset = 0;
+	var cTimeMarkerOffset = 0;
+	var dTimeMarkerOffset = 0;
+
+	for(var k in this.c.tiers.nfo) {
+		pTimeMarkerOffset = $(this.c.tiers.nfo[k].timeMarker[0][0]).offset().left;
+		break;
+	}
+	console.log('*** pTimeMarkerOffset = ' + pTimeMarkerOffset);
+
 	this.c.scroller.pos = this.c.scroller.$.scrollLeft();
 	this.c.scroller.$.html(''); //clear everything
 
-	if(this.wav) {
-		this.renderWAV();
-	}
-	if(this.textgrid) {
-		this.renderTextGrid();
-	}
+	if(this.wav) { this.renderWAV();}
+	if(this.textgrid) { this.renderTextGrid(); }
 
 	this.c.scroller.$.scrollLeft(this.c.scroller.pos);
 
 	this.updateZoomControls();
 	this.updateTimeMarker();
+
+	cTimeMarkerOffset = $(this.c.tiers.nfo[Object.keys(this.c.tiers.nfo)[0]].timeMarker[0][0]).offset().left;
+	dTimeMarkerOffset = cTimeMarkerOffset - pTimeMarkerOffset;
+	
+	if(pTimeMarkerOffset) {
+		this.c.scroller.$.scrollLeft(this.c.scroller.pos + dTimeMarkerOffset);
+	}
 };
 /**
  * Render the TextGrid for this TimeSyncedGrid
@@ -669,9 +678,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 		if(name.length > tierNameOffset) { tierNameOffset = name.length; }
 	}
 	tierNameOffset*=10;
-	self.currentTimeMarkerPosition = self.currentTime * self.xmult;
 
-	var tmpMarkerOffset = null;
 	for(var i = 0; i < rTiers.length; i++) {
 		var svg = rTiers[i];
 		var data = svg.__data__;
@@ -830,11 +837,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 		self.c.tiers.nfo[data.header.name] = {
 			'timeMarker': timeMarker
 		};
-		tmpMarkerOffset = $(timeMarker[0][0]).offset().left;
-		console.log('tmpMarkerOffset = ' + tmpMarkerOffset);
 	} /* end for */
-	console.log('previousMarkerOffset = ' + self.currentTimeMarkerOffset);
-	console.log('scroll pixels = ' + (self.currentTimeMarkerOffset - tmpMarkerOffset));
 
 	self.c.tiers.tierNameOffset = tierNameOffset;
 	self.c.scroller.$.find('svg').on('click', function(e) {
@@ -874,8 +877,6 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.updateTimeMarker = function() {
 		// .transition()
 		// .duration(200)
 		.attr('x', self.currentTimeMarkerPosition);
-		self.currentTimeMarkerOffset = $(timeMarker[0][0]).offset().left;
-		// console.log(self.currentTimeMarkerOffset);
 	}
 	this.c.infotop.currentTime.$.text(this.currentTime.toFixed(this.timePrecision));
 }

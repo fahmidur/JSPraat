@@ -411,7 +411,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 	if($('#'+containerID).length == 0) {
 		throw "TimeSyncedGrid: container id='"+containerID+"' does not exist";
 	}
-	this.zoomFactor = 5;
+	this.zoomFactor = 10;
 	this.xmultMin = 100;
 	this.xmultMax = 800;
 	this.xmult = this.xmultMin + (this.xmultMax - this.xmultMin) / 2;
@@ -419,6 +419,9 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 
 	this.cPrefix = 'TSG';
 	this.currentTime = 0.0;
+
+	this.currentTimeMarkerPosition = null;
+	this.currentTimeMarkerOffset = null;
 
 	this.c = {
 		'ID': containerID,
@@ -602,9 +605,6 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.render = function() {
 	this.c.scroller.pos = this.c.scroller.$.scrollLeft();
 	this.c.scroller.$.html(''); //clear everything
 
-
-	this.updateZoomControls();
-
 	if(this.wav) {
 		this.renderWAV();
 	}
@@ -613,6 +613,8 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.render = function() {
 	}
 
 	this.c.scroller.$.scrollLeft(this.c.scroller.pos);
+
+	this.updateZoomControls();
 	this.updateTimeMarker();
 };
 /**
@@ -667,7 +669,9 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 		if(name.length > tierNameOffset) { tierNameOffset = name.length; }
 	}
 	tierNameOffset*=10;
+	self.currentTimeMarkerPosition = self.currentTime * self.xmult;
 
+	var tmpMarkerOffset = null;
 	for(var i = 0; i < rTiers.length; i++) {
 		var svg = rTiers[i];
 		var data = svg.__data__;
@@ -812,12 +816,13 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			.attr('class', 'tier-text');
 		} /* end if */
 
+
 		// Draw currentTimeMarker
 		var timeMarker = d3svg
 		.append('rect')
 		.attr('width', 1)
 		.attr('height', tierHeight)
-		.attr('x', this.currentTime * this.xmult)
+		.attr('x', self.currentTimeMarkerPosition)
 		.attr('y', 0)
 		.attr('class', 'current-time-marker');
 
@@ -825,7 +830,11 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 		self.c.tiers.nfo[data.header.name] = {
 			'timeMarker': timeMarker
 		};
+		tmpMarkerOffset = $(timeMarker[0][0]).offset().left;
+		console.log('tmpMarkerOffset = ' + tmpMarkerOffset);
 	} /* end for */
+	console.log('previousMarkerOffset = ' + self.currentTimeMarkerOffset);
+	console.log('scroll pixels = ' + (self.currentTimeMarkerOffset - tmpMarkerOffset));
 
 	self.c.tiers.tierNameOffset = tierNameOffset;
 	self.c.scroller.$.find('svg').on('click', function(e) {
@@ -838,6 +847,8 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 		self.c.infotop.currentTime.$.text(self.currentTime.toFixed(self.timePrecision));
 		self.updateTimeMarker();
 	});
+
+
 };
 /**
  * Render the WAV file for this TimeSyncedGrid.
@@ -855,12 +866,16 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderWAV = function() {
  */
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.updateTimeMarker = function() {
 	var self = this;
+	self.currentTimeMarkerPosition = self.currentTime * self.xmult + self.c.tiers.tierNameOffset;
+
 	for(var k in self.c.tiers.nfo) {
 		var timeMarker = self.c.tiers.nfo[k].timeMarker;
 		timeMarker
 		// .transition()
 		// .duration(200)
-		.attr('x', self.currentTime * self.xmult + self.c.tiers.tierNameOffset);
+		.attr('x', self.currentTimeMarkerPosition);
+		self.currentTimeMarkerOffset = $(timeMarker[0][0]).offset().left;
+		// console.log(self.currentTimeMarkerOffset);
 	}
 	this.c.infotop.currentTime.$.text(this.currentTime.toFixed(this.timePrecision));
 }

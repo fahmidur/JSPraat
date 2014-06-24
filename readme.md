@@ -5,7 +5,12 @@ Work has begun in providing a compatibility layer with Praat's TextGrid format.
 
 ![Screenshot of TimeSyncedGrid](https://raw.githubusercontent.com/fahmidur/JSPraat/master/screenshots/jspraat_ss005.png "Screenshot of TimeSyncedGrid")
 
+[Demo](http://syedreza.org/etc/JSPraat_demo1/)
+
+A List of Classes:
+
 * JSPraat.TextGrid.TextGrid -  A JS class for representing a single TextGrid. It has been tested on a small set of examples including interval tiers and point tiers. The constructor takes either a path to a .TextGrid file or takes the contents of a TextGrid file. See main.js for an example.
+* JSPraat.TimeSyncedGrid.TimeSyncedGrid - A TimeSyncedGrid displays exactly one WAV form time-synchronized to exactly one TextGrid below the WAV form.
 
 
 

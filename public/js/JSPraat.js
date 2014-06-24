@@ -537,16 +537,13 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.initializeUI = function() {
 		if(!self.tierNameOffset) { return; }
 		var x = $(this).scrollLeft();
 		var $floaters = self.c.scroller.$.find('.tier-name-floater');
-		if(x > self.tierNameOffset) {
-			$floaters.animate({'opacity': 1}, 200);
-			for(var k in self.c.tiers.nfo) {
-				self.c.tiers.nfo[k].nameFloater
-				.transition()
-				.duration(700)
-				.attr('transform', 'translate('+x+', 0)');
-			}
-		} else {
-			$floaters.animate({'opacity': 0}, 100);
+		$floaters.animate({'opacity': ((x > self.tierNameOffset) ? 1 : 0)}, 200);
+		// not optimal but looks nicer to always move it
+		for(var k in self.c.tiers.nfo) {
+			self.c.tiers.nfo[k].nameFloater
+			.transition()
+			.duration(700)
+			.attr('transform', 'translate('+x+', 0)');
 		}
 	});
 

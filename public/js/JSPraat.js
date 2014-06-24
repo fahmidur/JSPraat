@@ -413,8 +413,8 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 	}
 	this.zoomFactor = 5;
 	this.xmultMin = 100;
-	this.xmultMax = 400;
-	this.xmult = this.xmultMax;
+	this.xmultMax = 800;
+	this.xmult = this.xmultMin + (this.xmultMax - this.xmultMin) / 2;
 	this.timePrecision = 3;
 
 	this.cPrefix = 'TSG';
@@ -521,7 +521,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.initializeUI = function() {
 	this.c.infotop.controls.zoomSlider.$ = $(this.c.infotop.controls.zoomSlider.s);
 
 	this.c.infotop.controls.zoomSlider.$.on('change', function(e) {
-		self.xmult = $(this).val();
+		self.xmult = parseInt($(this).val());
 		self.render();
 	});
 
@@ -557,13 +557,16 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.initializeUI = function() {
 };
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.updateZoomControls = function() {
 	console.log('updating zoom controls ' + this.xmult);
+
 	this.c.infotop.controls.zoomIndicator.$.text( Math.round((this.xmult - this.xmultMin) / (this.xmultMax - this.xmultMin) * 100) );
 	this.c.infotop.controls.zoomSlider.$.val(this.xmult);
+
+	console.log('updating zoom controls. xmult=' + this.xmult + " zoomFactor=" + this.zoomFactor);
 }
 
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.controlsEventHandler_zoomIn_click = function(e) {
 	console.log('TimeSyncedGrid Event: zoomIn');
-	this.xmult += 1 + this.zoomFactor;
+	this.xmult += this.zoomFactor;
 	this.render();
 };
 
@@ -597,7 +600,6 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.render = function() {
 	
 	
 	this.c.scroller.pos = this.c.scroller.$.scrollLeft();
-	console.log(this.c.scroller.pos);
 	this.c.scroller.$.html(''); //clear everything
 
 
@@ -621,10 +623,6 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.render = function() {
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 	var self = this;
 	var xmaxTier = Math.ceil(self.textgrid.header.xmax);
-	// if((xmaxTier*self.xmult) < this.c.width) {
-	// 	self.xmult = (this.c.width-2) / xmaxTier;
-	// }
-	// var xPosLast = xmaxTier * self.xmult;
 	var tierHeight = null;
 
 	if(this.textgrid === null) { throw "TimeSyncedGrid: renderTextGrid found no textgrid"; }

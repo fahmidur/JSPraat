@@ -486,7 +486,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 		'height': null,
 		'$': $('#'+containerID),
 		'scroller': {
-			'ID': this.cPrefix + '-scroller',
+			'cname': this.cPrefix + '-scroller',
 			'$': null,
 			'pos': 0
 		},
@@ -553,9 +553,8 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid = function(containerID) {
 JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.initializeUI = function() {
 	var self = this;
 
-	this.c.$.html("<div id='"+this.c.scroller.ID+"'></div>");
-	this.c.scroller.s = '#'+this.c.scroller.ID;
-	this.c.scroller.$ = $(this.c.scroller.s);
+	this.c.$.html("<div class='"+this.c.scroller.cname+"'></div>");
+	this.c.scroller.$ = this.c.$.find('.' + this.c.scroller.cname);
 
 	this.c.$.prepend("<div id='"+this.c.infotop.ID+"'></div>");
 	this.c.infotop.s = '#'+this.c.infotop.ID;
@@ -699,7 +698,7 @@ JSPraat.TimeSyncedGrid.TimeSyncedGrid.prototype.renderTextGrid = function() {
 	this.xmin = this.textgrid.header.xmin;
 	this.xmax = this.textgrid.header.xmax;
 
-	var tiers = d3.select(this.c.scroller.s).selectAll("div").data(this.textgrid.tiers)
+	var tiers = d3.select(this.c.scroller.$.get(0)).selectAll("div").data(this.textgrid.tiers)
 	.enter()
 	.append("div")
 	.attr('class', function(d) {

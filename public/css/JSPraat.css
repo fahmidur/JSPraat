@@ -26,6 +26,12 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	font-size:16px;
 	cursor:crosshair;
 }
+.TSG-infotop-time-data {
+	display: inline-block;
+	min-width:50px;
+	background-color: red;
+}
+
 #TSG-current-time {
 	display: inline-block;
 	float: right;

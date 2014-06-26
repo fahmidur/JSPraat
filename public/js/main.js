@@ -5,9 +5,10 @@ $(function() {
 	var one = 'sample-textgrids/iti-01.TextGrid';
 	var one_wav = 'sample-textgrids/iti-01.wav';
 
-	var tgone = new JSPraat.TextGrid.TextGrid(one);
-	var auone = new JSPraat.Audio.Audio(one_wav);
-	var tgrid = new JSPraat.TimeSyncedGrid.TimeSyncedGrid('TSG-container');
+	var tgone = new JSPraat.TextGrid(one);
+
+	var auone = new JSPraat.Audio(one_wav);
+	var tgrid = new JSPraat.TimeSyncedGrid('TSG-container');
 
 	// for debugging
 	window.tgone = tgone;

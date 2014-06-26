@@ -1,6 +1,6 @@
 body::-webkit-scrollbar{background-color:#ddd;border-left:1px solid #ccc;width:10px;}
 body::-webkit-scrollbar-thumb{background-color:#bbb;}
-#TSG-container {
+#TSG-container.disabled {
 	max-width:1200px;
 	margin: 0 auto;
 	min-height:500px;
@@ -9,7 +9,7 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
     -khtml-user-select: none; /* webkit (konqueror) browsers */
     -ms-user-select: none; /* IE10+ */
 }
-#TSG-infotop {
+.TSG-infotop {
 	-webkit-user-select: none; /* webkit (safari, chrome) browsers */
     -moz-user-select: none; /* mozilla browsers */
     -khtml-user-select: none; /* webkit (konqueror) browsers */
@@ -31,8 +31,7 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	min-width:50px;
 	background-color: red;
 }
-
-#TSG-current-time {
+.TSG-current-time {
 	display: inline-block;
 	float: right;
 	padding-right:5px;
@@ -47,35 +46,34 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	border-bottom: 1px solid #ccc;
 	border-left: 1px solid #aaa;
 }
-#TSG-current-time::after {
+.TSG-current-time::after {
 	font-family: FontAwesome;
 	content: " \f017";
 }
-
-#TSG-controls {
+.TSG-controls {
 	display: inline-block;
 	margin-right: 10px;
 }
-#TSG-controls #TSG-controls-zoom-slider {
+.TSG-controls .TSG-controls-zoom-slider {
 	height:10px;
 	outline: none;
 }
-#TSG-controls #TSG-controls-zoom-slider::-webkit-slider-thumb  {
+.TSG-controls .TSG-controls-zoom-slider::-webkit-slider-thumb  {
     background-color: #222;
     opacity: 0.5;
     width: 10px;
     height: 16px;
     font-size: 12px;
 }
-#TSG-controls-zoom-indicator {
+.TSG-controls-zoom-indicator {
 	font-size: 13px;
 	font-weight: normal;
 	color: #5d5d5d;
 }
-#TSG-controls-zoom-indicator::after {
+.TSG-controls-zoom-indicator::after {
 	content: '%';
 }
-#TSG-controls .control-btn {
+.TSG-controls .control-btn {
 	/*background-color: red;*/
 	display: inline-block;
 	padding:1px;
@@ -87,7 +85,7 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	transition-duration: 1s, 1s, 1s;
 	transition-timing-function: cubic-bezier(.06,1.47,.29,.87), cubic-bezier(.06,1.47,.29,.87), cubic-bezier(.06,1.47,.29,.87);
 }
-#TSG-controls .control-btn:hover {
+.TSG-controls .control-btn:hover {
 	border: 1px solid #2d2d2d;
 	background-color: #2d2d2d;
 	color: #fff;

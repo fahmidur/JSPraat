@@ -556,49 +556,42 @@ JSPraat.TimeSyncedGrid = function(containerID) {
 		'height': null,
 		'$': $('#'+containerID),
 		'scroller': {
-			'cname': this.cPrefix + '-scroller',
+			'cn': this.cPrefix + '-scroller',
 			'$': null,
 			'pos': 0
 		},
 		'infotop': {
-			'ID': this.cPrefix + '-infotop',
-			's': null,
+			'cn': this.cPrefix + '-infotop',
 			'$': null,
 			'timeData': {
-				'cname': this.cPrefix + '-infotop-time-data',
+				'cn': this.cPrefix + '-infotop-time-data',
 				'$': null,
 			},
 			'label': {
-				'cname': this.cPrefix + '-infotop-label',
+				'cn': this.cPrefix + '-infotop-label',
 				'$': null,
 			},
 			'currentTime': {
-				ID: this.cPrefix + '-current-time',
-				's': null,
+				'cn': this.cPrefix + '-current-time',
 				'$': null,
 			},
 			'controls': {
-				'ID': this.cPrefix + '-controls',
-				's': '.' + this.cPrefix + '-controls',
+				'cn': this.cPrefix + '-controls',
 				'$': null,
 				'zoomIn': {
-					'ID': this.cPrefix + '-controls-zoom-in',
-					's': '#' + this.cPrefix + '-controls-zoom-in',
+					'cn': this.cPrefix + '-controls-zoom-in',
 					'$': null
 				},
 				'zoomOut': {
-					'ID': this.cPrefix + '-controls-zoom-out',
-					's': '#' + this.cPrefix + '-controls-zoom-out',
+					'cn': this.cPrefix + '-controls-zoom-out',
 					'$': null
 				},
 				'zoomSlider': {
-					'ID': this.cPrefix + '-controls-zoom-slider',
-					's': '#' + this.cPrefix + '-controls-zoom-slider',
+					'cn': this.cPrefix + '-controls-zoom-slider',
 					'$': null
 				},
 				'zoomIndicator': {
-					'ID': this.cPrefix + '-controls-zoom-indicator',
-					's': '#' + this.cPrefix + '-controls-zoom-indicator',
+					'cn': this.cPrefix + '-controls-zoom-indicator',
 					'$': null
 				}
 			}
@@ -623,41 +616,38 @@ JSPraat.TimeSyncedGrid = function(containerID) {
 JSPraat.TimeSyncedGrid.prototype.initializeUI = function() {
 	var self = this;
 
-	this.c.$.html("<div class='"+this.c.scroller.cname+"'></div>");
-	this.c.scroller.$ = this.c.$.find('.' + this.c.scroller.cname);
+	this.c.$.html("<div class='"+this.c.scroller.cn+"'></div>");
+	this.c.scroller.$ = this.c.$.find('.' + this.c.scroller.cn);
 
-	this.c.$.prepend("<div id='"+this.c.infotop.ID+"'></div>");
-	this.c.infotop.s = '#'+this.c.infotop.ID;
-	this.c.infotop.$ = $(this.c.infotop.s);
+	this.c.$.prepend("<div class='"+this.c.infotop.cn+"'></div>");
+	this.c.infotop.$ = this.c.$.find('.'+this.c.infotop.cn);
 
-	this.c.infotop.$.prepend("<span class='"+this.c.infotop.label.cname+"'></span>");
-	this.c.infotop.label.$ = this.c.infotop.$.find('.'+this.c.infotop.label.cname);
+	this.c.infotop.$.prepend("<span class='"+this.c.infotop.label.cn+"'></span>");
+	this.c.infotop.label.$ = this.c.infotop.$.find('.'+this.c.infotop.label.cn);
 
-	this.c.infotop.$.append("<span id='"+this.c.infotop.currentTime.ID+"'></span>");
-	this.c.infotop.currentTime.s = '#' + this.c.infotop.currentTime.ID;
-	this.c.infotop.currentTime.$ = $(this.c.infotop.currentTime.s);
+	this.c.infotop.$.append("<span class='"+this.c.infotop.currentTime.cn+"'></span>");
+	this.c.infotop.currentTime.$ = this.c.infotop.$.find('.'+this.c.infotop.currentTime.cn);
 	this.c.infotop.currentTime.$.text('-');
 
-	this.c.infotop.$.prepend("<span id='"+this.c.infotop.controls.ID+"'></span>");
-	this.c.infotop.controls.s = '#' + this.c.infotop.controls.ID;
-	this.c.infotop.controls.$ = $(this.c.infotop.controls.s);
+	this.c.infotop.$.prepend("<span class='"+this.c.infotop.controls.cn+"'></span>");
+	this.c.infotop.controls.$ = this.c.infotop.$.find('.'+this.c.infotop.controls.cn);
 
-	this.c.infotop.controls.$.append("<span id='"+this.c.infotop.controls.zoomIn.ID+"' class='control-btn' data-name='zoomIn'><i class='fa fa-fw fa-search-plus'></i></span>");
-	this.c.infotop.controls.zoomIn.$ = $(this.c.infotop.controls.zoomIn.s);
+	this.c.infotop.controls.$.append("<span class='control-btn "+this.c.infotop.controls.zoomIn.ID+"' data-name='zoomIn'><i class='fa fa-fw fa-search-plus'></i></span>");
+	this.c.infotop.controls.zoomIn.$ = this.c.infotop.controls.$.find('.'+this.c.infotop.controls.zoomIn.cn);
 
-	this.c.infotop.controls.$.append("<span id='"+this.c.infotop.controls.zoomOut.ID+"' class='control-btn' data-name='zoomOut'><i class='fa fa-fw fa-search-minus'></i></span>");
-	this.c.infotop.controls.zoomOut.$ = $(this.c.infotop.controls.zoomOut.s);
+	this.c.infotop.controls.$.append("<span class='control-btn "+this.c.infotop.controls.zoomOut.ID+"' data-name='zoomOut'><i class='fa fa-fw fa-search-minus'></i></span>");
+	this.c.infotop.controls.zoomOut.$ = this.c.infotop.controls.$.find('.'+this.c.infotop.controls.zoomOut.cn);
 
-	this.c.infotop.controls.$.append('<input type="range" name="points" min="'+this.xmultMin+'" max="'+this.xmultMax+'" id="'+this.c.infotop.controls.zoomSlider.ID+'">');
-	this.c.infotop.controls.zoomSlider.$ = $(this.c.infotop.controls.zoomSlider.s);
+	this.c.infotop.controls.$.append('<input type="range" name="points" min="'+this.xmultMin+'" max="'+this.xmultMax+'" class="'+this.c.infotop.controls.zoomSlider.cn+'">');
+	this.c.infotop.controls.zoomSlider.$ = this.c.infotop.controls.$.find('.'+this.c.infotop.controls.zoomSlider.cn);
 
 	this.c.infotop.controls.zoomSlider.$.on('change', function(e) {
 		self.xmult = parseInt($(this).val());
 		self.render();
 	});
 
-	this.c.infotop.controls.$.append('<span id="'+this.c.infotop.controls.zoomIndicator.ID+'">'+this.xmult+'</span>');
-	this.c.infotop.controls.zoomIndicator.$ = $(this.c.infotop.controls.zoomIndicator.s);
+	this.c.infotop.controls.$.append('<span class="'+this.c.infotop.controls.zoomIndicator.cn+'">'+this.xmult+'</span>');
+	this.c.infotop.controls.zoomIndicator.$ = this.c.infotop.controls.$.find('.'+this.c.infotop.controls.zoomIndicator.cn);
 
 
 	this.c.scroller.$.on('scroll', function(e) {

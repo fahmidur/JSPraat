@@ -420,8 +420,8 @@ JSPraat.TextGrid.Tier.prototype.parsePoints = function() {
  * A wrapper class for all of our functions on Audio.
  * It works via the AudioContext;
  *
- * @class Audio.Audio
- * @memberOf JSPraat.Audio;
+ * @class Audio
+ * @memberOf JSPraat
  * @constructor
  * @param {string} url of the audio file
  */

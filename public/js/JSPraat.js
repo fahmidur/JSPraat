@@ -786,16 +786,6 @@ JSPraat.TimeSyncedGrid.prototype.renderTextGrid = function() {
 	});
 	var halfTierHeight = tierHeight / 2;
 
-
-	// console.log(tiers);
-
-	// tiers.append('line')
-	// .attr('x1', 0)
-	// .attr('y1', halfTierHeight)
-	// .attr('x2', function(d) { return xPosLast; })
-	// .attr('y2', halfTierHeight)
-	// .attr('class', 'tier-central-line');
-
 	var rTiers = tiers[0];
 	var tierNameOffset = 0;
 	for(var i = 0; i < rTiers.length; i++) {

@@ -1,19 +1,6 @@
 'use strict';
 
 $(function() {
-	// var one = 'sample-textgrids/nominated.TextGrid';
-	var one = 'sample-textgrids/iti-01.TextGrid';
-	var one_wav = 'sample-textgrids/iti-01.wav';
-
-	var tgone = new JSPraat.TextGrid(one);
-
-	var auone = new JSPraat.Audio(one_wav);
-	var tgrid = new JSPraat.TimeSyncedGrid('TSG-container');
-
-	// for debugging
-	window.tgone = tgone;
-
-	tgone.ready(function() {
-		tgrid.setTextGrid(tgone);
-	});
+	var wavURL = 'sample-textgrids/iti-01.wav';
+	var audioOne = new JSPraat.Audio(wavURL);
 });

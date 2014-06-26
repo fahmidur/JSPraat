@@ -7,14 +7,14 @@
 	<script type='text/javascript' src="js/d3.min.js"></script>
 
 	<script src='js/JSPraat.js'></script>
-
+	<script src='js/main.js'></script>
 </head>
 <body>
-	<div id='TSG-container'></div>
+	<div class='TSG-container' data-textgrid='sample-textgrids/iti-01.TextGrid' data-audio='sample-textgrids/iti-01.wav'></div>
+	<!-- <div class='TSG-container' data-textgrid='sample-textgrids/iti-02.TextGrid' data-audio='sample-textgrids/iti-02.wav'></div> -->
 
-	<pre id='textgrid'>
-	</pre>
-	
-	<script src='js/main.js'></script>
+
+
+	<script>JSPraat.TimeSyncedGrid.autoRender();</script>
 </body>
 </html>

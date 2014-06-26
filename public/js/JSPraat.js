@@ -531,12 +531,15 @@ JSPraat.Audio.prototype.onError = function(e) {
  * @constructor
  * @param {string} ID of the container for the TimeSyncedGrid
  */
-JSPraat.TimeSyncedGrid = function(containerID) {
+JSPraat.TimeSyncedGrid = function($container) {
 	if(! (this instanceof JSPraat.TimeSyncedGrid)) {
-		return new JSPraat.TimeSyncedGrid(containerID);
+		return new JSPraat.TimeSyncedGrid($container);
 	}
-	if($('#'+containerID).length == 0) {
-		throw "TimeSyncedGrid: container id='"+containerID+"' does not exist";
+	if(! ($container instanceof jQuery)) {
+		throw "TimeSyncedGrid: container must be a jQuery object";
+	}
+	if($container.length == 0) {
+		throw "TimeSyncedGrid: container does not exist";
 	}
 	this.zoomFactor = 20;
 	this.xmultMin = 100;
@@ -544,17 +547,16 @@ JSPraat.TimeSyncedGrid = function(containerID) {
 	this.xmult = this.xmultMin + (this.xmultMax - this.xmultMin) / 2;
 	this.timePrecision = 3;
 
-	this.cPrefix = 'TSG';
+	this.cPrefix = "TSG";
 	this.currentTime = 0.0;
 
 	this.currentTimeMarkerPosition = null;
 	this.tierNameOffset = null;
 
 	this.c = {
-		'ID': containerID,
 		'width': null,
 		'height': null,
-		'$': $('#'+containerID),
+		'$': $container,
 		'scroller': {
 			'cn': this.cPrefix + '-scroller',
 			'$': null,
@@ -981,7 +983,7 @@ JSPraat.TimeSyncedGrid.prototype.updateTimeMarker = function() {
 		.attr('x', self.currentTimeMarkerPosition);
 	}
 	this.c.infotop.currentTime.$.text(this.currentTime.toFixed(this.timePrecision));
-}
+};
 /**
  * Render the the audio file for this TimeSyncedGrid
  * TODO
@@ -991,8 +993,21 @@ JSPraat.TimeSyncedGrid.prototype.updateTimeMarker = function() {
 JSPraat.TimeSyncedGrid.prototype.renderAudio = function() {
 	console.log('rendering Audio');
 	if(this.audiofile === null) { throw "TimeSyncedGrid: renderAudio found no audio"}
-}
+};
+JSPraat.TimeSyncedGrid.autoRender = function() {
+	$('.TSG-container').each(function(e) {
+		var $w = $(this);
+		var tgridURL = $w.data('textgrid');
+		var audioURL = $w.data('audio');
 
+		var tsg = new JSPraat.TimeSyncedGrid($w);
+		var tgrid = new JSPraat.TextGrid(tgridURL);
+
+		tgrid.ready(function() {
+			tsg.setTextGrid(tgrid);
+		});
+	});
+};
 //------------------------------------------------------------------------------------------------------
 //--------------------------------END OF TIME-SYNCED-GRID-----------------------------------------------
 //------------------------------------------------------------------------------------------------------

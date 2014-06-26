@@ -1,9 +1,8 @@
 body::-webkit-scrollbar{background-color:#ddd;border-left:1px solid #ccc;width:10px;}
 body::-webkit-scrollbar-thumb{background-color:#bbb;}
-#TSG-container.disabled {
-	max-width:1200px;
-	margin: 0 auto;
-	min-height:500px;
+.TSG-container {
+	margin: 0px;
+	margin-bottom:20px;
 	-webkit-user-select: none; /* webkit (safari, chrome) browsers */
     -moz-user-select: none; /* mozilla browsers */
     -khtml-user-select: none; /* webkit (konqueror) browsers */

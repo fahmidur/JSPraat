@@ -396,7 +396,7 @@ JSPraat.TextGrid.TextGrid.prototype.parseHeader = function() {
 JSPraat.Audio = {};
 /**
  * A wrapper class for all of our functions on Audio.
- * It works via the webkitAudioContext;
+ * It works via the AudioContext;
  *
  * @class Audio.Audio
  * @memberOf JSPraat.Audio;
@@ -408,24 +408,44 @@ JSPraat.Audio.Audio = function(url) {
 		return new JSPraat.Audio.Audio(url);
 	}
 	console.log('contructing Audio.Audio');
+	var self = this;
+
 	this.url = url;
-	this.ctx = new webkitAudioContext();
-	this.audioBuffer = null;
-	this.sourceNode = null;
+
+	this.ctx = new AudioContext();
 
 	this.analyser = this.ctx.createAnalyser(); 
 	this.analyser.smoothingTimeConstant = 0.3;
 	this.analyser.fftSize = 1024;
 
-	//setupAudioNodes()
-	this.sourceNode = this.ctx.createBufferSource();
-	this.sourceNode.connect(this.ctx.destination);
+	
+	this.audioBuffer = null;
+	this.sourceNode = null;
+	this.gainNode = null;
+	this.gainValue = 1.0;
 
 	this.loadSound();
 
+	//for debug
+	window.maudio = this;
 	console.log('contructed Audio.Audio');
 };
+JSPraat.Audio.Audio.prototype.initNodes = function() {
+	console.log('initNodes...')
 
+	this.sourceNode = this.ctx.createBufferSource();
+	this.sourceNode.buffer = this.audioBuffer;
+	// this.sourceNode.connect(this.ctx.destination);
+	console.log('sourceNode = ', this.sourceNode);
+
+	this.gainNode = this.ctx.createGain();
+	this.sourceNode.connect(this.gainNode);
+	this.gainNode.connect(this.ctx.destination);
+	this.gainNode.gain.value = this.gainValue;
+	console.log('gainNode = ', this.gainNode);
+
+	console.log('initNodes...done');
+};
 JSPraat.Audio.Audio.prototype.loadSound = function() {
 	console.log('loading sound from: ' + this.url);
 	var self = this;
@@ -435,16 +455,32 @@ JSPraat.Audio.Audio.prototype.loadSound = function() {
 
 	req.onload = function() {
 		self.ctx.decodeAudioData(req.response, function(buf) {
-			self.sourceNode.buffer = buf;
-			// self.playSound(0);
+			self.audioBuffer = buf;
+
+			self.initNodes();
 		}, self.onError);
 	};
 	req.send();
 };
-JSPraat.Audio.Audio.prototype.playSound = function(from) {
-	console.log('playing sound from ' + from);
-	this.sourceNode.noteOn(0);
+/**
+ * playSound takes a required start time and an optional
+ * end time in seconds. It then plays the given interval
+ * from the audio source node.
+ * if no end time is given, it plays from the start time
+ * all the way to the end of the buffer.
+ * @method playSound
+ * @param {integer} start time in seconds
+ * @param {integer} end time in seconds
+ */
+JSPraat.Audio.Audio.prototype.playSound = function(start, end) {
+	console.log('playing sound [' +start+ ', '+end+']');
 
+	// this.sourceNode.playbackRate.value = 2.5;
+	this.sourceNode.noteOn(this.ctx.currentTime + start);
+	if(end) {
+		this.sourceNode.noteOff(this.ctx.currentTime + end);
+	}
+	this.initNodes();
 };
 JSPraat.Audio.Audio.prototype.onError = function(e) {
 	console.log(e);

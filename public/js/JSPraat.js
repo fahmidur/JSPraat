@@ -429,7 +429,7 @@ JSPraat.Audio = function(url) {
 	if(! (this instanceof JSPraat.Audio)) {
 		return new JSPraat.Audio.Audio(url);
 	}
-	console.log('contructing Audio.Audio');
+	console.log('constructing JSPraat.Audio...');
 	var self = this;
 
 	this.url = url;
@@ -450,7 +450,7 @@ JSPraat.Audio = function(url) {
 
 	//for debug
 	window.maudio = this;
-	console.log('contructed Audio.Audio');
+	console.log('constructing JSPraat.Audio...done');
 };
 JSPraat.Audio.prototype.initNodes = function() {
 	console.log('initNodes...')

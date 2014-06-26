@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 yuicompressor public/js/JSPraat.js > public/js/JSPraat.mini.js
 yuicompressor public/css/JSPraat.css > public/css/JSPraat.mini.css
+yuidoc public/js

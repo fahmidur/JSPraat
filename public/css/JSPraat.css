@@ -13,52 +13,53 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
     -moz-user-select: none; /* mozilla browsers */
     -khtml-user-select: none; /* webkit (konqueror) browsers */
     -ms-user-select: none; /* IE10+ */
-
+    display: block;
 	background-color: #eee;
-	/*background-color: transparent;*/
 	color: #2d2d2d;
-	padding-left: 0px;
-	padding-right: 0px;
-	/*border-bottom: 1px solid #eee;*/
-	font-family:"Helvetica Neue",Arial,Helvetica,sans-serif;
+	padding:0px;
+	/*font-family:"Helvetica Neue",Arial,Helvetica,sans-serif;*/
+	font-family: "Courier New", monospace;
 	font-weight: bold;
 	font-size:16px;
 	cursor:crosshair;
 }
-.TSG-infotop-label {
-
-}
 .TSG-infotop-time-data {
 	display: inline-block;
-	min-width:50px;
 	color: #555;
+
+	margin: 0px;
 	margin-right: 10px;
-	border-left: 1px solid #ddd;
-	border-right: 1px solid #ddd;
-	border-bottom: 1px solid #eee;
+
+	border-left: 1px solid #ccc;
+	border-right: 1px solid #ccc;
+
+	border-bottom: 1px solid #efefef;
+	border-top: 1px solid #efefef;
+
 	background-color: rgba(255,255,255,0.7);
+
 	padding-left: 4px;
 	padding-right: 4px;
 }
 .TSG-current-time {
 	display: inline-block;
 	float: right;
+	color: #555;
+	background-color: #fafafa;
 	padding-right:5px;
 	padding-left:5px;
-	color: #555;
-	padding-top:1px;
 	border: 1px solid #eee;
-	font-size:14px;
-	background-color: #fafafa;
-	padding-top:1px;
-	padding-bottom:1px;
-	border-bottom: 1px solid #eee;
 	border-left: 1px solid #ddd;
+	font-family:"Helvetica Neue",Arial,Helvetica,sans-serif;
 }
 .TSG-current-time::after {
 	font-family: FontAwesome;
 	content: " \f017";
 }
+.TSG-infotop-label {
+
+}
+
 .TSG-controls {
 	display: inline-block;
 	margin-right: 10px;
@@ -67,12 +68,31 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	height:10px;
 	outline: none;
 }
+.TSG-controls .TSG-controls-zoom-slider {
+	-webkit-appearance: none;
+	background: transparent;
+}
+.TSG-controls .TSG-controls-zoom-slider::-webkit-slider-runnable-track {
+	background: #777;
+	height:2px;
+}
 .TSG-controls .TSG-controls-zoom-slider::-webkit-slider-thumb  {
-    background-color: #222;
-    opacity: 0.5;
+	-webkit-appearance: none;
+	position: relative;
+	top:-4px;
+    background: #fefefe;
     width: 10px;
-    height: 16px;
-    font-size: 12px;
+    height: 10px;
+    border: 1px solid #2d2d2d;
+    cursor:pointer;
+    border-radius:5px;
+}
+.TSG-controls .TSG-controls-zoom-slider::-moz-range-thumb {
+	background: #fefefe;
+	border-radius: 50%;
+	height:10px;
+	width:10px;
+	cursor: pointer;
 }
 .TSG-controls-zoom-indicator {
 	font-size: 13px;
@@ -83,10 +103,7 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	content: '%';
 }
 .TSG-controls .control-btn {
-	/*background-color: red;*/
 	display: inline-block;
-	padding:1px;
-	/*color: #aaa;*/
 	color: #2d2d2d;
 	cursor: pointer;
 	border: 1px solid #e2e2e2;

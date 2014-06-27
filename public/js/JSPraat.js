@@ -612,6 +612,7 @@ JSPraat.TimeSyncedGrid = function($container) {
 		'tiers': {
 			'className': this.cPrefix+'-tier',
 			's': '.'+ this.cPrefix +'-tier',
+			'floatersVisible': false,
 			'nfo': {}
 		},
 	};
@@ -670,7 +671,18 @@ JSPraat.TimeSyncedGrid.prototype.initializeUI = function() {
 		if(!self.tierNameOffset) { return; }
 		var x = $(this).scrollLeft();
 		var $floaters = self.c.scroller.$.find('.tier-name-floater');
-		$floaters.animate({'opacity': ((x > self.tierNameOffset) ? 1 : 0)}, 200);
+
+		// $floaters.stop(true, true).animate({'opacity': ((x > self.tierNameOffset) ? 1 : 0)}, 200);
+		if(x >= self.tierNameOffset && !self.c.tiers.floatersVisible) {
+				$floaters.stop(true, true).animate({'opacity': 1}, 200);
+				self.c.tiers.floatersVisible = true;
+		}
+		else
+		if(x < self.tierNameOffset && self.c.tiers.floatersVisible) {
+			$floaters.stop(true, true).animate({'opacity': 0}, 200);
+			self.c.tiers.floatersVisible = false;
+		}
+
 		// not optimal but looks nicer to always move it
 		for(var k in self.c.tiers.nfo) {
 			self.c.tiers.nfo[k].nameFloater

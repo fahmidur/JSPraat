@@ -425,7 +425,7 @@ JSPraat.TextGrid.Tier.prototype.parsePoints = function() {
  * @constructor
  * @param {string} url of the audio file
  */
-JSPraat.Audio = function(url) { 
+JSPraat.Audio = function(url) {
 	if(! (this instanceof JSPraat.Audio)) {
 		return new JSPraat.Audio.Audio(url);
 	}
@@ -436,9 +436,9 @@ JSPraat.Audio = function(url) {
 
 	this.ctx = new AudioContext();
 
-	this.analyser = this.ctx.createAnalyser(); 
-	this.analyser.smoothingTimeConstant = 0.3;
-	this.analyser.fftSize = 1024;
+	this.analyserNode = this.ctx.createAnalyser(); 
+	this.analyserNode.smoothingTimeConstant = 0.3;
+	this.analyserNode.fftSize = 1024;
 
 	
 	this.audioBuffer = null;
@@ -448,23 +448,34 @@ JSPraat.Audio = function(url) {
 
 	this.loadSound();
 
-	//for debug
+	// for debugging
 	window.maudio = this;
+
 	console.log('constructing JSPraat.Audio...done');
 };
 JSPraat.Audio.prototype.initNodes = function() {
 	console.log('initNodes...')
 
+
+	// create the sourceNode
 	this.sourceNode = this.ctx.createBufferSource();
 	this.sourceNode.buffer = this.audioBuffer;
-	// this.sourceNode.connect(this.ctx.destination);
 	console.log('sourceNode = ', this.sourceNode);
 
+
+	// create the gainNode
 	this.gainNode = this.ctx.createGain();
-	this.sourceNode.connect(this.gainNode);
 	this.gainNode.connect(this.ctx.destination);
 	this.gainNode.gain.value = this.gainValue;
 	console.log('gainNode = ', this.gainNode);
+
+	// connect nodes
+	// [sourceNode] -> [gainNode]    -> [destination]
+	//       |
+	//       +------> [analyserNode] -> [...]
+	this.sourceNode.connect(this.gainNode);
+	this.sourceNode.connect(this.analyserNode);
+
 
 	console.log('initNodes...done');
 };
@@ -626,6 +637,9 @@ JSPraat.TimeSyncedGrid.prototype.initializeUI = function() {
 
 	this.c.infotop.$.prepend("<span class='"+this.c.infotop.label.cn+"'></span>");
 	this.c.infotop.label.$ = this.c.infotop.$.find('.'+this.c.infotop.label.cn);
+
+	this.c.infotop.$.prepend("<span class='"+this.c.infotop.timeData.cn+"'></span>");
+	this.c.infotop.timeData.$ = this.c.infotop.$.find('.'+this.c.infotop.timeData.cn);
 
 	this.c.infotop.$.append("<span class='"+this.c.infotop.currentTime.cn+"'></span>");
 	this.c.infotop.currentTime.$ = this.c.infotop.$.find('.'+this.c.infotop.currentTime.cn);
@@ -827,7 +841,8 @@ JSPraat.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			.attr('height', halfTierHeight)
 			.attr('class', 'interval-group')
 			.on('mouseenter', function(d) {
-				self.c.infotop.label.$.html("[" + d[0].toFixed(self.timePrecision)+ ", " + d[1].toFixed(self.timePrecision)+ "] &nbsp;" + d[2]);
+				self.c.infotop.timeData.$.text(d[0].toFixed(self.timePrecision)+ ", " + d[1].toFixed(self.timePrecision));
+				self.c.infotop.label.$.html(d[2]);
 			})
 			.on('mouseout', function(d) {
 				
@@ -874,7 +889,8 @@ JSPraat.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			.attr('height', halfTierHeight)
 			.attr('class', 'point-group')
 			.on('mouseenter', function(d) {
-				self.c.infotop.label.$.text(d[0].toFixed(self.timePrecision) + ": " + d[1]);
+				self.c.infotop.timeData.$.text(d[0].toFixed(self.timePrecision));
+				self.c.infotop.label.$.text(d[1]);
 			})
 			.on('mouseout', function(d) {
 				

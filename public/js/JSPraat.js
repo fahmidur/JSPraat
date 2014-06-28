@@ -172,7 +172,6 @@ JSPraat.TextGrid.prototype.parseHeader = function() {
 			this.header.objectClass = match[1];
 		}
 	}
-	// console.log('----END OF HEADER----');
 };
 
 
@@ -704,7 +703,6 @@ JSPraat.TimeSyncedGrid.prototype.initializeUI = function() {
 	this.updateZoomControls();
 };
 JSPraat.TimeSyncedGrid.prototype.updateZoomControls = function() {
-	// console.log('updating zoom controls. xmult=' + this.xmult + " zoomFactor=" + this.zoomFactor);
 	this.c.infotop.controls.zoomIndicator.$.text( Math.round((this.xmult - this.xmultMin) / (this.xmultMax - this.xmultMin) * 100) );
 	this.c.infotop.controls.zoomSlider.$.val(this.xmult);
 }

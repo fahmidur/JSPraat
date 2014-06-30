@@ -23,6 +23,10 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	font-size:16px;
 	cursor:crosshair;
 }
+.TSG-audio-wrapper {
+	/*background-color: red;*/
+	/*height:100px;*/
+}
 .TSG-infotop-time-data {
 	display: inline-block;
 	color: #555;

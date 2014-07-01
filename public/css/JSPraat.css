@@ -70,6 +70,7 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 }
 .TSG-controls .TSG-controls-zoom-slider {
 	height:10px;
+	width:100px;
 	outline: none;
 }
 .TSG-controls .TSG-controls-zoom-slider {

@@ -15,7 +15,7 @@ var JSPraat = {};
  * At the moment, it only supports the long-form
  * format TextGrids.
  *
- * @class TextGrid.TextGrid
+ * @class TextGrid
  * @memberOf JSPraat
  * @constructor
  * @param {string} data A String that is either a URL to the Data or the Data itself
@@ -441,15 +441,16 @@ JSPraat.Audio = function(url) {
 	 * - duration (in seconds)
 	 * - gain (0-1)
 	 * - length
-	 * - number of channels
+	 * - numberOfChannels
 	 * - sampleRate
 	 */
 
 	this.sourceNode = null;
+	this.channelData = new Array();
 
 
 	this.gainNode = null;
-	this.gainValue = 0.0;
+	this.gainValue = 1.0;
 
 	this.analyserNode = null;
 	this.jsNode = null;
@@ -468,6 +469,10 @@ JSPraat.Audio.getAverageVolume = function(a) {
 	return s;
 };
 //----------------------------------------------------
+/**
+ * Creates and initializes all the nodes
+ * @method initNodes
+ */
 JSPraat.Audio.prototype.initNodes = function() {
 	var self = this;
 	console.log('initNodes...');
@@ -495,17 +500,22 @@ JSPraat.Audio.prototype.initNodes = function() {
 	this.jsNode = this.ctx.createScriptProcessor(2048, 2, 1);
 	console.log('jsNode = ', this.jsNode);
 
-	this.jsNode.onaudioprocess = function() {
-		var array =  new Uint8Array(self.analyserNode.frequencyBinCount);
-		self.analyserNode.getByteFrequencyData(array);
+	// this.jsNode.onaudioprocess = function() {
+	// 	var array =  new Uint8Array(self.analyserNode.frequencyBinCount);
+	// 	self.analyserNode.getByteFrequencyData(array);
 		
-		var averageVolume = JSPraat.Audio.getAverageVolume(array);
-	};
+	// 	var averageVolume = JSPraat.Audio.getAverageVolume(array);
+	// 	console.log(averageVolume);
+	// };
 
 	this.connectNodes();
 
 	console.log('initNodes...done');
 };
+/**
+ * connectNodes connects all the nodes.
+ * @method connectNodes
+ */
 JSPraat.Audio.prototype.connectNodes = function() {
 	// connect nodes
 	// [sourceNode] -> [gainNode]    -> [destination]
@@ -518,6 +528,13 @@ JSPraat.Audio.prototype.connectNodes = function() {
 	this.analyserNode.connect(this.jsNode);
 	this.jsNode.connect(this.ctx.destination);
 };
+/**
+ * loadSound loads the audio data, decodes
+ * the data onload, and stores the buffer
+ * for re-use.
+ *
+ * @method loadSound
+ */
 JSPraat.Audio.prototype.loadSound = function() {
 	console.log('loading sound from: ' + this.url);
 	var self = this;
@@ -529,7 +546,11 @@ JSPraat.Audio.prototype.loadSound = function() {
 		self.ctx.decodeAudioData(req.response, function(buf) {
 			self.audioBuffer = buf;
 			self.initNodes();
-			self.play(0, self.audioBuffer.duration);
+
+			for(var i = 0; i < self.audioBuffer.numberOfChannels; ++i) {
+				self.channelData.push(self.audioBuffer.getChannelData(i));
+			}
+			
 		}, self.onError);
 	};
 	req.send();
@@ -540,25 +561,33 @@ JSPraat.Audio.prototype.recreateSourceNode = function() {
 	this.sourceNode.buffer = this.audioBuffer;
 	console.log('sourceNode = ', this.sourceNode);
 
+	//re-connect the nodes
 	this.connectNodes();
 };
 /**
- * play takes a required start time and an optional
+ * playInterval takes a required start time and an optional
  * end time in seconds. It then plays the given interval
  * from the audio source node.
  * if no end time is given, it plays from the start time
  * all the way to the end of the buffer.
- * @method playSound
+ *
+ * @method playInterval
  * @param {integer} start time in seconds
  * @param {integer} end time in seconds
  */
-JSPraat.Audio.prototype.play = function(start, end) {
+JSPraat.Audio.prototype.playInterval = function(start, end) {
 	console.log('playing sound [' +start+ ', '+end+']');
 
 	this.sourceNode.playbackRate.value = 1.0;
-	this.sourceNode.noteOn(this.ctx.currentTime + start);
+
 	if(end) {
-		this.sourceNode.noteOff(this.ctx.currentTime + end);
+		// play immediately in the interval from start to end
+		// noteGrainOn takes (delay, offset, duration)
+		// the duration is calculated as (end-start)
+		this.sourceNode.noteGrainOn(0, start, (end-start));
+	} else {
+		// play immediately all the way through
+		this.sourceNode.noteGrainOn(0, start, this.audioBuffer.duration);
 	}
 	this.recreateSourceNode();
 };

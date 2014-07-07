@@ -15,12 +15,13 @@ var JSPraat = {};
  * At the moment, it only supports the long-form
  * format TextGrids.
  *
- * @class TextGrid.TextGrid
+ * @class TextGrid
  * @memberOf JSPraat
  * @constructor
  * @param {string} data A String that is either a URL to the Data or the Data itself
+ * @param {function} readyFunc The ready function
  */
-JSPraat.TextGrid = function(data) {
+JSPraat.TextGrid = function(data, readyFunc) {
 	if (! (this instanceof JSPraat.TextGrid) ) {
 		return new JSPraat.TextGrid(data);
 	}
@@ -29,7 +30,7 @@ JSPraat.TextGrid = function(data) {
 	var match;
 	var self = this;
 
-	this.readyFunc = null;
+	this.readyFunc = readyFunc;
 
 	if( (match = data.match(pathRegex)) ) {
 		$.ajax({
@@ -422,9 +423,10 @@ JSPraat.TextGrid.Tier.prototype.parsePoints = function() {
  * @class Audio
  * @memberOf JSPraat
  * @constructor
- * @param {string} url of the audio file
+ * @param {string} url The url of the audio file
+ * @param {function} readyFunc The ready function
  */
-JSPraat.Audio = function(url) {
+JSPraat.Audio = function(url, readyFunc) {
 	if(! (this instanceof JSPraat.Audio)) {
 		return new JSPraat.Audio.Audio(url);
 	}
@@ -432,33 +434,103 @@ JSPraat.Audio = function(url) {
 	var self = this;
 
 	this.url = url;
+	this.readyFunc = readyFunc;
 
 	this.ctx = new AudioContext();
 
-	this.analyserNode = this.ctx.createAnalyser(); 
-	this.analyserNode.smoothingTimeConstant = 0.3;
-	this.analyserNode.fftSize = 1024;
+	this.audioBuffer = readyFunc;
+	/*
+	 * Properties of the audioBuffer
+	 * - duration (in seconds)
+	 * - gain (0-1)
+	 * - length
+	 * - numberOfChannels
+	 * - sampleRate
+	 */
 
-	
-	this.audioBuffer = null;
 	this.sourceNode = null;
+	this.channelData = new Array();
+
+
 	this.gainNode = null;
 	this.gainValue = 1.0;
 
-	this.loadSound();
+	this.analyserNode = null;
+	this.jsNode = null;
 
-	// for debugging
-	window.maudio = this;
+	this.loadSound();
 
 	console.log('constructing JSPraat.Audio...done');
 };
+//------START OF STATIC FUNCTIONS---------------------
+/**
+ * Calculates the average of an array. In this case for average volume.
+ * It does not do type checking. It is meant to be used onaudioprocess.
+ * @static
+ * @param {Array} arr An array of summables and dividables
+ * @method getAverageVolume
+ */
+JSPraat.Audio.getAverageVolume = function(arr) {
+	var s = 0; var size = arr.length;
+	for(var i = 0; i < size; i++) {
+		s += arr[i];
+		s /= 2;
+	}
+	return s;
+};
+//----------------------------------------------------
+/**
+ * findPeaks Calculate all {length} peaks in this audio buffer
+ * @param {Integer} length The number of peaks to extract
+ * @method findPeaks
+ */
+JSPraat.Audio.prototype.findPeaks = function(length) {
+	var peaks = new Float32Array(length);
+	var sampleSize = this.audioBuffer.length / length;
+	var sampleStep = Math.floor(sampleStep / 10) || 1;
+
+	for(var ch = 0; ch < this.audioBuffer.numberOfChannels; ++ch) {
+		var data = this.channelData[ch];
+		for(var i = 0; i < length; ++i) {
+			var start = Math.floor(i*sampleSize);
+			var end = Math.floor(start + sampleSize);
+			var max = 0;
+			for(var j = start; j < end; j += sampleStep) {
+				var value = data[j];
+				if(value > max)  { max = value; }
+				else
+				if(-value > max) { max = value; }
+			}
+			if(ch == 0 || max > peaks[i]) {
+				peaks[i] = max;
+			}
+		}
+	}
+	return peaks;
+};
+/**
+ * sets the ready function
+ */
+JSPraat.Audio.prototype.ready = function(func) {
+	if(typeof func !== 'function') {
+		throw "Audio: ready requires a function";
+	}
+	this.readyFunc = func;
+};
+/**
+ * Creates and initializes all the nodes
+ * @private
+ * @method initNodes
+ */
 JSPraat.Audio.prototype.initNodes = function() {
-	console.log('initNodes...')
+	var self = this;
+	console.log('initNodes...');
 
 
 	// create the sourceNode
 	this.sourceNode = this.ctx.createBufferSource();
 	this.sourceNode.buffer = this.audioBuffer;
+	this.playingTimeout = null;
 	console.log('sourceNode = ', this.sourceNode);
 
 
@@ -468,16 +540,52 @@ JSPraat.Audio.prototype.initNodes = function() {
 	this.gainNode.gain.value = this.gainValue;
 	console.log('gainNode = ', this.gainNode);
 
-	// connect nodes
-	// [sourceNode] -> [gainNode]    -> [destination]
-	//       |
-	//       +------> [analyserNode] -> [...]
-	this.sourceNode.connect(this.gainNode);
-	this.sourceNode.connect(this.analyserNode);
+	// create the analyserNode
+	this.analyserNode = this.ctx.createAnalyser(); 
+	this.analyserNode.smoothingTimeConstant = 0.3;
+	this.analyserNode.fftSize = 1024;
 
+
+	// create the jsNode
+	this.jsNode = this.ctx.createScriptProcessor(2048, 2, 1);
+	console.log('jsNode = ', this.jsNode);
+
+	// this.jsNode.onaudioprocess = function() {
+	// 	var array =  new Uint8Array(self.analyserNode.frequencyBinCount);
+	// 	self.analyserNode.getByteFrequencyData(array);
+		
+	// 	var averageVolume = JSPraat.Audio.getAverageVolume(array);
+	// 	console.log(averageVolume);
+	// };
+
+	this.connectNodes();
 
 	console.log('initNodes...done');
 };
+/**
+ * connectNodes connects all the nodes.
+ * @private
+ * @method connectNodes
+ */
+JSPraat.Audio.prototype.connectNodes = function() {
+	// connect nodes
+	// [sourceNode] -> [gainNode]    -> [destination]
+	//       |
+	//       +------> [analyserNode] -> [jsNode]
+
+	this.sourceNode.connect(this.gainNode);
+	this.sourceNode.connect(this.analyserNode);
+
+	this.analyserNode.connect(this.jsNode);
+	this.jsNode.connect(this.ctx.destination);
+};
+/**
+ * loadSound loads the audio data, decodes
+ * the data onload, and stores the buffer
+ * for re-use.
+ * @private
+ * @method loadSound
+ */
 JSPraat.Audio.prototype.loadSound = function() {
 	console.log('loading sound from: ' + this.url);
 	var self = this;
@@ -488,32 +596,126 @@ JSPraat.Audio.prototype.loadSound = function() {
 	req.onload = function() {
 		self.ctx.decodeAudioData(req.response, function(buf) {
 			self.audioBuffer = buf;
-
 			self.initNodes();
+
+			for(var i = 0; i < self.audioBuffer.numberOfChannels; ++i) {
+				self.channelData.push(self.audioBuffer.getChannelData(i));
+			}
+			
+			if(typeof self.readyFunc === 'function') {
+				self.readyFunc();
+			}
 		}, self.onError);
 	};
 	req.send();
 };
+JSPraat.Audio.prototype.recreateSourceNode = function() {
+	// create the sourceNode
+	this.sourceNode = this.ctx.createBufferSource();
+	this.sourceNode.buffer = this.audioBuffer;
+	console.log('sourceNode = ', this.sourceNode);
+
+	//re-connect the nodes
+	this.connectNodes();
+};
 /**
- * playSound takes a required start time and an optional
+ * stopPlay is called to stop what is currently playing
+ * @method stopPlay
+ */
+JSPraat.Audio.prototype.stopPlay = function() {
+	if(this.playingTimeout) {
+		console.log('Audio: already playing something. Aborting current play:');
+
+		window.clearTimeout(this.playingTimeout);
+		this.playingTimeout = null;
+
+		this.sourceNode.stop(0);
+		this.recreateSourceNode();
+	}
+};
+
+/**
+ * playDuration takes a required start time and an optional
+ * duration. The duration must be less than remaining time from
+ * the start time.
+ *
+ * @method playDuration
+ * @param {integer} start The start time in seconds
+ * @param {integer} duration The duration in seconds
+ */
+JSPraat.Audio.prototype.playDuration = function(start, duration) {
+	var self = this;
+
+	if(start < 0 || start > self.audioBuffer.duration) {
+		throw "Audio: playDuration requires 0 <= start <= duration";
+	}
+	var remaining = self.audioBuffer.duration - start;
+
+	if(duration) {
+		if(duration > remaining) {
+			throw "Audio: playDuration requires duration <= remaining time";
+		}
+	} else {
+		duration = remaining;
+	}
+
+	self.noteGrainOn(0, start, duration);
+};
+/**
+ * playInterval takes a required start time and an optional
  * end time in seconds. It then plays the given interval
  * from the audio source node.
  * if no end time is given, it plays from the start time
  * all the way to the end of the buffer.
- * @method playSound
- * @param {integer} start time in seconds
- * @param {integer} end time in seconds
+ *
+ * @method playInterval
+ * @param {integer} start The start time in seconds
+ * @param {integer} end The end time in seconds
  */
-JSPraat.Audio.prototype.playSound = function(start, end) {
-	console.log('playing sound [' +start+ ', '+end+']');
+JSPraat.Audio.prototype.playInterval = function(start, end) {
+	console.log('playing sound [' +start+ ', ' +end+ ']');
+	var duration, self = this;
 
-	// this.sourceNode.playbackRate.value = 2.5;
-	this.sourceNode.noteOn(this.ctx.currentTime + start);
-	if(end) {
-		this.sourceNode.noteOff(this.ctx.currentTime + end);
+	self.sourceNode.playbackRate.value = 1.0;
+
+	if(start < 0 || start > self.audioBuffer.duration) {
+		throw "Audio: playInterval requires 0 <= start <= duration";
 	}
-	this.initNodes();
+
+	if(end) {
+		if(end < start || end > self.audioBuffer.duration) { 
+			throw "Audio: playInterval requires start <= end <= duration";
+		}
+		// play immediately in the interval from start to end
+		duration = (end-start);
+	} else {
+		// play immediately all the way through
+		duration = self.audioBuffer.duration - start;
+	}
+
+	self.noteGrainOn(0, start, duration);
 };
+
+/**
+ * noteGrainOn wraps around sourceNode.noteGrainOn
+ * It recreates the playingTimeout
+ * @private
+ * @method noteGrainOn
+ */
+JSPraat.Audio.prototype.noteGrainOn = function(delay, offset, duration) {
+	var self = this;
+
+	self.stopPlay(); //release the lock
+
+	// noteGrainOn takes (delay, offset, duration)
+	self.sourceNode.noteGrainOn(0, offset, duration);
+	self.playingTimeout = window.setTimeout(function() {
+		console.log('Audio: play finished. recreating source node.');
+		self.recreateSourceNode();
+		self.playingTimeout = null;
+	}, 1000*duration);
+	console.log('playingTimeout = ', self.playingTimeout);
+}
 JSPraat.Audio.prototype.onError = function(e) {
 	console.log(e);
 	throw "Audio: error decoding audio data. ";
@@ -570,7 +772,23 @@ JSPraat.TimeSyncedGrid = function($container) {
 		'scroller': {
 			'cn': this.cPrefix + '-scroller',
 			'$': null,
-			'pos': 0
+			'pos': 0,
+			'audioWrapper': {
+				'cn': this.cPrefix + '-audio-wrapper',
+				'$': null,
+				'z': null,
+				'ctx': null,
+			},
+			'audioWrapper2': {
+				'cn': this.cPrefix + '-audio-wrapper2',
+				'$': null,
+				'z': null,
+				'ctx': null,
+			},
+			'textgridWrapper': {
+				'cn': this.cPrefix + '-textgrid-wrapper',
+				'$': null
+			},
 		},
 		'infotop': {
 			'cn': this.cPrefix + '-infotop',
@@ -612,6 +830,7 @@ JSPraat.TimeSyncedGrid = function($container) {
 			'className': this.cPrefix+'-tier',
 			's': '.'+ this.cPrefix +'-tier',
 			'floatersVisible': false,
+			'tierNameOffset': null,
 			'nfo': {}
 		},
 	};
@@ -666,6 +885,21 @@ JSPraat.TimeSyncedGrid.prototype.initializeUI = function() {
 	this.c.infotop.controls.zoomIndicator.$ = this.c.infotop.controls.$.find('.'+this.c.infotop.controls.zoomIndicator.cn);
 
 
+	//create textgrid-wrapper
+	this.c.scroller.$.append('<div class="'+this.c.scroller.textgridWrapper.cn+'"></div>');
+	this.c.scroller.textgridWrapper.$ = this.c.scroller.$.find('.'+this.c.scroller.textgridWrapper.cn);
+
+	//create audio-wrapper
+	this.c.scroller.$.prepend('<canvas class="'+this.c.scroller.audioWrapper.cn+'"></canvas>');
+	this.c.scroller.audioWrapper.$ = this.c.scroller.$.find('.'+this.c.scroller.audioWrapper.cn);
+	this.c.scroller.audioWrapper.z = this.c.scroller.audioWrapper.$.get(0);
+
+	//create audio-wrapper2
+	this.c.scroller.$.prepend('<canvas class="'+this.c.scroller.audioWrapper2.cn+'"></canvas>');
+	this.c.scroller.audioWrapper2.$ = this.c.scroller.$.find('.'+this.c.scroller.audioWrapper2.cn);
+	this.c.scroller.audioWrapper2.z = this.c.scroller.audioWrapper2.$.get(0);
+
+
 	this.c.scroller.$.on('scroll', function(e) {
 		if(!self.tierNameOffset) { return; }
 		var x = $(this).scrollLeft();
@@ -689,6 +923,14 @@ JSPraat.TimeSyncedGrid.prototype.initializeUI = function() {
 			.duration(700)
 			.attr('transform', 'translate('+x+', 0)');
 		}
+
+		self.updateTimeMarkerAudio();
+	});
+
+	this.c.scroller.$.mousewheel(function(e, delta) {
+		var currentScroll = self.c.scroller.$.scrollLeft();
+		self.c.scroller.$.scrollLeft(currentScroll - 10*delta);
+		return false;
 	});
 
 	this.c.infotop.controls.$.find('.control-btn').each(function(e) {
@@ -734,6 +976,75 @@ JSPraat.TimeSyncedGrid.prototype.setTextGrid = function(tgrid) {
 	this.render();
 };
 /**
+ * Sets the JSPraat.Audio object to display in this TimeSyncedGrid
+ * The Audio object is then immediately rendered. 
+ * The Audio object must be ready to render, to ensure this:
+ * call this function within myAudio.ready(function() {...})
+ */
+JSPraat.TimeSyncedGrid.prototype.setAudio = function(audio) {
+	this.audio = audio;
+	this.render();
+};
+
+/**
+ * Reshapes this TimeSyncedGrid.
+ * This is called usually after zooming.
+ * THIS METHOD IS UNFINISHED
+ * @method reshape
+ */
+JSPraat.TimeSyncedGrid.prototype.reshape = function() {
+	console.log('reshaping...');
+	var self = this;
+
+
+	var pTimeMarkerOffset = 0;
+	var cTimeMarkerOffset = 0;
+	var dTimeMarkerOffset = 0;
+
+	for(var k in this.c.tiers.nfo) {
+		pTimeMarkerOffset = $(this.c.tiers.nfo[k].timeMarker[0][0]).offset().left;
+		break;
+	}
+
+	this.c.scroller.pos = this.c.scroller.$.scrollLeft();
+
+	//--- ReShape TextGrid ---
+	var tierNameOffset = self.c.tiers.tierNameOffset;
+	self.c.scroller.$.find('svg').each(function(e) {
+		var tierHeight = $(this).height();
+		var halfTierHeight = tierHeight / 2;
+		var quarterTierHeight = halfTierHeight / 4;
+
+		var tierData = d3.select(this).data()[0];
+		var isIntervalTier = tierData.isIntervalTier();
+		$(this).find('g').each(function(e) {
+			var $el = $(this);
+			var d = d3.select(this).data();
+			if(typeof d[0][0] === 'undefined') { return; }
+			d = d[0];
+
+			$el
+			.attr('transform', 'translate(' + (tierNameOffset + self.xmult*d[0]) + ', ' + (quarterTierHeight) + ')');
+
+			if(isIntervalTier) {
+				$el.find('rect')
+				.attr('width', (self.xmult * d[1]) - (self.xmult * d[0]) - 1)
+				.attr('height', halfTierHeight);
+			}
+			
+		});
+	});
+	//--- Done Reshaping TextGrid
+
+	this.updateZoomControls();
+	this.updateTimeMarker();
+
+	cTimeMarkerOffset = $(this.c.tiers.nfo[Object.keys(this.c.tiers.nfo)[0]].timeMarker[0][0]).offset().left;
+	dTimeMarkerOffset = cTimeMarkerOffset - pTimeMarkerOffset;
+	
+	if(pTimeMarkerOffset) { this.c.scroller.$.scrollLeft(this.c.scroller.pos + dTimeMarkerOffset);}
+}
+/**
  * Renders this TimeSyncedGrid
  * @method render
  */
@@ -751,7 +1062,6 @@ JSPraat.TimeSyncedGrid.prototype.render = function() {
 	}
 
 	this.c.scroller.pos = this.c.scroller.$.scrollLeft();
-	this.c.scroller.$.html(''); //clear everything
 
 	if(this.textgrid)	{ this.renderTextGrid();	}
 	if(this.audio) 		{ this.renderAudio();		}
@@ -775,6 +1085,7 @@ JSPraat.TimeSyncedGrid.prototype.renderTextGrid = function() {
 	console.log('rendering textgrid');
 
 	var self = this;
+
 	var xmaxTier = Math.ceil(self.textgrid.header.xmax);
 	var tierHeight = null;
 
@@ -784,7 +1095,9 @@ JSPraat.TimeSyncedGrid.prototype.renderTextGrid = function() {
 	this.xmin = this.textgrid.header.xmin;
 	this.xmax = this.textgrid.header.xmax;
 
-	var tiers = d3.select(this.c.scroller.$.get(0)).selectAll("div").data(this.textgrid.tiers)
+	this.c.scroller.textgridWrapper.$.html('');
+	var tiers = d3.select(this.c.scroller.textgridWrapper.$.get(0))
+	.selectAll("div").data(this.textgrid.tiers)
 	.enter()
 	.append("div")
 	.attr('class', function(d) {
@@ -809,6 +1122,7 @@ JSPraat.TimeSyncedGrid.prototype.renderTextGrid = function() {
 		if(name.length > tierNameOffset) { tierNameOffset = name.length; }
 	}
 	tierNameOffset*=10;
+	self.c.tiers.tierNameOffset = tierNameOffset;
 
 	for(var i = 0; i < rTiers.length; i++) {
 		var svg = rTiers[i];
@@ -856,6 +1170,11 @@ JSPraat.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			})
 			.on('mouseout', function(d) {
 				
+			})
+			.on('click', function(d) {
+				if(self.audio) {
+					self.audio.playInterval(d[0], d[1]);
+				}
 			});
 
 			groups
@@ -986,7 +1305,7 @@ JSPraat.TimeSyncedGrid.prototype.renderTextGrid = function() {
 		if(xPixels < 0) { xPixels  = 0; }
 
 		self.currentTime = xPixels / self.xmult;
-		console.log(xPixels, self.currentTime);
+		// console.log(xPixels, self.currentTime);
 
 		self.c.infotop.currentTime.$.text(self.currentTime.toFixed(self.timePrecision));
 		self.updateTimeMarker();
@@ -1009,7 +1328,27 @@ JSPraat.TimeSyncedGrid.prototype.updateTimeMarker = function() {
 		.attr('x', self.currentTimeMarkerPosition);
 	}
 	this.c.infotop.currentTime.$.text(this.currentTime.toFixed(this.timePrecision));
+
+	self.updateTimeMarkerAudio();
 };
+JSPraat.TimeSyncedGrid.prototype.updateTimeMarkerAudio = function() {
+	var self = this;
+	var ctx = self.c.scroller.audioWrapper2.ctx;
+	if(!ctx) { return; }
+	var scrollLeft = self.c.scroller.$.scrollLeft();
+	var width = self.c.scroller.audioWrapper.z.width;
+	var height = self.c.scroller.audioWrapper.z.height;
+	var realWidth = self.c.scroller.audioWrapper2.z.width;
+
+	var x = (self.currentTimeMarkerPosition+0.5 - scrollLeft) % realWidth;
+	ctx.clearRect(0, 0, width, height);
+	ctx.beginPath();
+	ctx.moveTo(x, 0);
+	ctx.lineTo(x, parseInt(self.c.scroller.audioWrapper.z.height));
+	ctx.strokeStyle='rgba(255,0,0,0.5)';
+	ctx.lineWidth=1.5;
+	ctx.stroke();	
+}
 /**
  * Render the the audio file for this TimeSyncedGrid
  * TODO
@@ -1018,8 +1357,79 @@ JSPraat.TimeSyncedGrid.prototype.updateTimeMarker = function() {
  */
 JSPraat.TimeSyncedGrid.prototype.renderAudio = function() {
 	console.log('rendering Audio');
-	if(this.audiofile === null) { throw "TimeSyncedGrid: renderAudio found no audio"}
+	var self = this;
+
+	if(self.audio === null) { throw "TimeSyncedGrid: renderAudio found no audio"; }
+
+	var tierNameOffset = this.c.tiers.tierNameOffset;
+
+	// var xmax = self.textgrid.header.xmax;
+	var duration = self.audio.audioBuffer.duration;
+	console.log('duration = ', duration);
+	var aWidth =  duration * self.xmult;
+	var width = tierNameOffset + aWidth;
+	var height = 101;
+	var halfHeight = height / 2;
+
+	self.c.scroller.audioWrapper.$.width(width);
+	self.c.scroller.audioWrapper.$.height(height);
+
+	self.c.scroller.audioWrapper.z.width = width;
+	self.c.scroller.audioWrapper.z.height = height;
+	
+
+
+	var position = self.c.scroller.audioWrapper.$.position();
+	self.c.scroller.audioWrapper2.z.style.position = 'absolute';
+	self.c.scroller.audioWrapper2.z.style.top = position.top;
+	self.c.scroller.audioWrapper2.z.style.left = position.left;
+
+	self.c.scroller.audioWrapper2.$.width(self.c.scroller.$.width());
+	self.c.scroller.audioWrapper2.z.width = self.c.scroller.$.width();
+	self.c.scroller.audioWrapper2.$.height(height);
+	self.c.scroller.audioWrapper2.z.height = height;
+
+	
+
+
+	// var pxPerSecond = aWidth / duration;
+	// console.log('pxPerSecond = ', pxPerSecond);
+	var numPeaks = aWidth;
+	var peaks = self.audio.findPeaks(numPeaks);
+	console.log('peaks.length = ', peaks.length);
+
+
+	
+	var ctx = self.c.scroller.audioWrapper.z.getContext('2d');
+	var magY = null;
+	//TO-DO: normalize 
+	for(var i = 0; i < peaks.length; ++i) {
+		magY = halfHeight * peaks[i];
+		ctx.beginPath();
+
+		ctx.moveTo(tierNameOffset + i, halfHeight);
+		ctx.lineTo(tierNameOffset + i, halfHeight + magY );
+
+		ctx.moveTo(tierNameOffset + i, halfHeight);
+		ctx.lineTo(tierNameOffset + i, halfHeight - magY);
+
+		ctx.strokeStyle = 'rgba(0,0,100,0.7)';
+		ctx.lineWidth = 1;
+		ctx.stroke();
+	}
+
+	// ctx.beginPath();
+	// ctx.moveTo(5,5);
+	// ctx.lineTo(1000, halfHeight);
+	// ctx.strokeStyle = 'red';
+	// ctx.lineWidth = 2;
+	// ctx.stroke();
+
+	self.c.scroller.audioWrapper.ctx = ctx;
+	self.c.scroller.audioWrapper2.ctx = self.c.scroller.audioWrapper2.z.getContext('2d');
 };
+
+
 JSPraat.TimeSyncedGrid.autoRender = function() {
 	$('.TSG-container').each(function(e) {
 		var $w = $(this);
@@ -1027,11 +1437,25 @@ JSPraat.TimeSyncedGrid.autoRender = function() {
 		var audioURL = $w.data('audio');
 
 		var tsg = new JSPraat.TimeSyncedGrid($w);
-		var tgrid = new JSPraat.TextGrid(tgridURL);
 
-		tgrid.ready(function() {
-			tsg.setTextGrid(tgrid);
-		});
+		console.log('autoRender: TextGrid URL = ', tgridURL);
+		if(tgridURL) {
+			console.log('autoRender: creating TextGrid');
+			var tgrid = new JSPraat.TextGrid(tgridURL, function() {
+				tsg.setTextGrid(this);
+			});
+		}
+
+		console.log('autoRender: Audio URL = ', audioURL);
+		if(audioURL) {
+			console.log('autoRender: creating Audio');
+			var audio = new JSPraat.Audio(audioURL, function() {
+				console.log('READY!');
+				tsg.setAudio(this);
+			});
+		}
+
+		
 	});
 };
 //------------------------------------------------------------------------------------------------------

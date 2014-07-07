@@ -16,7 +16,8 @@ Work has begun in providing a compatibility layer with Praat's TextGrid format.
 
 
 ## Dependencies
-* JQuery
+* jQuery
+* jQuery.mousewheel (2013 Brandon Aaron)
 * D3 v3
 
 ## Usage

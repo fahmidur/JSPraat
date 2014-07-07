@@ -23,9 +23,18 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	font-size:16px;
 	cursor:crosshair;
 }
+.TSG-audio-wrapper2 {
+	/*background-color: rgba(0,0,0,0.3);*/
+	z-index:10;
+}
 .TSG-audio-wrapper {
-	/*background-color: red;*/
-	/*height:100px;*/
+	z-index:1;
+	/*background-color: rgba(255,255,0,0.1);*/
+	height:100px;
+	margin: 0px;
+	margin-bottom: -4px;
+	/*border-top:1px solid rgba(255,255,0,0.2);*/
+	/*border-bottom:1px solid rgba(255,255,0,0.2);*/
 }
 .TSG-infotop-time-data {
 	/*display: inline-block;*/

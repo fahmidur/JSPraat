@@ -19,8 +19,9 @@ var JSPraat = {};
  * @memberOf JSPraat
  * @constructor
  * @param {string} data A String that is either a URL to the Data or the Data itself
+ * @param {function} readyFunc The ready function
  */
-JSPraat.TextGrid = function(data) {
+JSPraat.TextGrid = function(data, readyFunc) {
 	if (! (this instanceof JSPraat.TextGrid) ) {
 		return new JSPraat.TextGrid(data);
 	}
@@ -29,7 +30,7 @@ JSPraat.TextGrid = function(data) {
 	var match;
 	var self = this;
 
-	this.readyFunc = null;
+	this.readyFunc = readyFunc;
 
 	if( (match = data.match(pathRegex)) ) {
 		$.ajax({
@@ -422,9 +423,10 @@ JSPraat.TextGrid.Tier.prototype.parsePoints = function() {
  * @class Audio
  * @memberOf JSPraat
  * @constructor
- * @param {string} url of the audio file
+ * @param {string} url The url of the audio file
+ * @param {function} readyFunc The ready function
  */
-JSPraat.Audio = function(url) {
+JSPraat.Audio = function(url, readyFunc) {
 	if(! (this instanceof JSPraat.Audio)) {
 		return new JSPraat.Audio.Audio(url);
 	}
@@ -432,10 +434,11 @@ JSPraat.Audio = function(url) {
 	var self = this;
 
 	this.url = url;
+	this.readyFunc = readyFunc;
 
 	this.ctx = new AudioContext();
 
-	this.audioBuffer = null;
+	this.audioBuffer = readyFunc;
 	/*
 	 * Properties of the audioBuffer
 	 * - duration (in seconds)
@@ -476,6 +479,44 @@ JSPraat.Audio.getAverageVolume = function(arr) {
 	return s;
 };
 //----------------------------------------------------
+/**
+ * findPeaks Calculate all {length} peaks in this audio buffer
+ * @param {Integer} length The number of peaks to extract
+ * @method findPeaks
+ */
+JSPraat.Audio.prototype.findPeaks = function(length) {
+	var peaks = new Float32Array(length);
+	var sampleSize = this.audioBuffer.length / length;
+	var sampleStep = Math.floor(sampleStep / 10) || 1;
+
+	for(var ch = 0; ch < this.audioBuffer.numberOfChannels; ++ch) {
+		var data = this.channelData[ch];
+		for(var i = 0; i < length; ++i) {
+			var start = Math.floor(i*sampleSize);
+			var end = Math.floor(start + sampleSize);
+			var max = 0;
+			for(var j = start; j < end; j += sampleStep) {
+				var value = data[j];
+				if(value > max)  { max = value; }
+				else
+				if(-value > max) { max = value; }
+			}
+			if(ch == 0 || max > peaks[i]) {
+				peaks[i] = max;
+			}
+		}
+	}
+	return peaks;
+};
+/**
+ * sets the ready function
+ */
+JSPraat.Audio.prototype.ready = function(func) {
+	if(typeof func !== 'function') {
+		throw "Audio: ready requires a function";
+	}
+	this.readyFunc = func;
+};
 /**
  * Creates and initializes all the nodes
  * @private
@@ -561,6 +602,9 @@ JSPraat.Audio.prototype.loadSound = function() {
 				self.channelData.push(self.audioBuffer.getChannelData(i));
 			}
 			
+			if(typeof self.readyFunc === 'function') {
+				self.readyFunc();
+			}
 		}, self.onError);
 	};
 	req.send();
@@ -731,7 +775,15 @@ JSPraat.TimeSyncedGrid = function($container) {
 			'pos': 0,
 			'audioWrapper': {
 				'cn': this.cPrefix + '-audio-wrapper',
-				'$': null
+				'$': null,
+				'z': null,
+				'ctx': null,
+			},
+			'audioWrapper2': {
+				'cn': this.cPrefix + '-audio-wrapper2',
+				'$': null,
+				'z': null,
+				'ctx': null,
 			},
 			'textgridWrapper': {
 				'cn': this.cPrefix + '-textgrid-wrapper',
@@ -838,9 +890,14 @@ JSPraat.TimeSyncedGrid.prototype.initializeUI = function() {
 	this.c.scroller.textgridWrapper.$ = this.c.scroller.$.find('.'+this.c.scroller.textgridWrapper.cn);
 
 	//create audio-wrapper
-	this.c.scroller.$.prepend('<div class="'+this.c.scroller.audioWrapper.cn+'"></div>');
+	this.c.scroller.$.prepend('<canvas class="'+this.c.scroller.audioWrapper.cn+'"></canvas>');
 	this.c.scroller.audioWrapper.$ = this.c.scroller.$.find('.'+this.c.scroller.audioWrapper.cn);
+	this.c.scroller.audioWrapper.z = this.c.scroller.audioWrapper.$.get(0);
 
+	//create audio-wrapper2
+	this.c.scroller.$.prepend('<canvas class="'+this.c.scroller.audioWrapper2.cn+'"></canvas>');
+	this.c.scroller.audioWrapper2.$ = this.c.scroller.$.find('.'+this.c.scroller.audioWrapper2.cn);
+	this.c.scroller.audioWrapper2.z = this.c.scroller.audioWrapper2.$.get(0);
 
 
 	this.c.scroller.$.on('scroll', function(e) {
@@ -866,6 +923,8 @@ JSPraat.TimeSyncedGrid.prototype.initializeUI = function() {
 			.duration(700)
 			.attr('transform', 'translate('+x+', 0)');
 		}
+
+		self.updateTimeMarkerAudio();
 	});
 
 	this.c.scroller.$.mousewheel(function(e, delta) {
@@ -916,6 +975,17 @@ JSPraat.TimeSyncedGrid.prototype.setTextGrid = function(tgrid) {
 	this.textgrid = tgrid;
 	this.render();
 };
+/**
+ * Sets the JSPraat.Audio object to display in this TimeSyncedGrid
+ * The Audio object is then immediately rendered. 
+ * The Audio object must be ready to render, to ensure this:
+ * call this function within myAudio.ready(function() {...})
+ */
+JSPraat.TimeSyncedGrid.prototype.setAudio = function(audio) {
+	this.audio = audio;
+	this.render();
+};
+
 /**
  * Reshapes this TimeSyncedGrid.
  * This is called usually after zooming.
@@ -1253,7 +1323,27 @@ JSPraat.TimeSyncedGrid.prototype.updateTimeMarker = function() {
 		.attr('x', self.currentTimeMarkerPosition);
 	}
 	this.c.infotop.currentTime.$.text(this.currentTime.toFixed(this.timePrecision));
+
+	self.updateTimeMarkerAudio();
 };
+JSPraat.TimeSyncedGrid.prototype.updateTimeMarkerAudio = function() {
+	var self = this;
+	var ctx = self.c.scroller.audioWrapper2.ctx;
+	if(!ctx) { return; }
+	var scrollLeft = self.c.scroller.$.scrollLeft();
+	var width = self.c.scroller.audioWrapper.z.width;
+	var height = self.c.scroller.audioWrapper.z.height;
+	var realWidth = self.c.scroller.audioWrapper2.z.width;
+
+	var x = (self.currentTimeMarkerPosition+0.5 - scrollLeft) % realWidth;
+	ctx.clearRect(0, 0, width, height);
+	ctx.beginPath();
+	ctx.moveTo(x, 0);
+	ctx.lineTo(x, parseInt(self.c.scroller.audioWrapper.z.height));
+	ctx.strokeStyle='rgba(255,0,0,0.5)';
+	ctx.lineWidth=1.5;
+	ctx.stroke();	
+}
 /**
  * Render the the audio file for this TimeSyncedGrid
  * TODO
@@ -1262,8 +1352,76 @@ JSPraat.TimeSyncedGrid.prototype.updateTimeMarker = function() {
  */
 JSPraat.TimeSyncedGrid.prototype.renderAudio = function() {
 	console.log('rendering Audio');
-	if(this.audiofile === null) { throw "TimeSyncedGrid: renderAudio found no audio"}
+	var self = this;
+
+	if(self.audio === null) { throw "TimeSyncedGrid: renderAudio found no audio"; }
+
+	var tierNameOffset = this.c.tiers.tierNameOffset;
+
+	// var xmax = self.textgrid.header.xmax;
+	var duration = self.audio.audioBuffer.duration;
+	var aWidth =  duration * self.xmult;
+	var width = tierNameOffset + aWidth;
+	var height = 101;
+	var halfHeight = height / 2;
+
+	self.c.scroller.audioWrapper.$.width(width);
+	self.c.scroller.audioWrapper.$.height(height);
+
+	self.c.scroller.audioWrapper.z.width = width;
+	self.c.scroller.audioWrapper.z.height = height;
+	
+
+
+	var position = self.c.scroller.audioWrapper.$.position();
+	self.c.scroller.audioWrapper2.z.style.position = 'absolute';
+	self.c.scroller.audioWrapper2.z.style.top = position.top;
+	self.c.scroller.audioWrapper2.z.style.left = position.left;
+
+	// self.c.scroller.audioWrapper2.$.width(width);
+	// self.c.scroller.audioWrapper2.$.height(height);
+	// self.c.scroller.audioWrapper2.z.width = width;
+	// self.c.scroller.audioWrapper2.z.height = height;
+
+	self.c.scroller.audioWrapper2.$.width(self.c.scroller.$.width());
+	self.c.scroller.audioWrapper2.z.width = self.c.scroller.$.width();
+	self.c.scroller.audioWrapper2.$.height(height);
+	self.c.scroller.audioWrapper2.z.height = height;
+
+	
+
+
+	// var pxPerSecond = aWidth / duration;
+	// console.log('pxPerSecond = ', pxPerSecond);
+	var numPeaks = aWidth;
+
+
+	var peaks = self.audio.findPeaks(numPeaks);
+	var ctx = self.c.scroller.audioWrapper.z.getContext('2d');
+
+
+	var magY = null;
+	//TO-DO: normalize 
+	for(var i = 0; i < peaks.length; ++i) {
+		magY = Math.abs(halfHeight * peaks[i]);
+		ctx.beginPath();
+
+		ctx.moveTo(tierNameOffset + i, halfHeight);
+		ctx.lineTo(tierNameOffset + i, halfHeight + magY );
+
+		ctx.moveTo(tierNameOffset + i, halfHeight);
+		ctx.lineTo(tierNameOffset + i, halfHeight - magY);
+
+		ctx.strokeStyle = 'rgba(0,0,100,0.5)';
+		ctx.lineWidth = 1;
+		ctx.stroke();
+	}
+
+	self.c.scroller.audioWrapper.ctx = ctx;
+	self.c.scroller.audioWrapper2.ctx = self.c.scroller.audioWrapper2.z.getContext('2d');
 };
+
+
 JSPraat.TimeSyncedGrid.autoRender = function() {
 	$('.TSG-container').each(function(e) {
 		var $w = $(this);
@@ -1271,11 +1429,25 @@ JSPraat.TimeSyncedGrid.autoRender = function() {
 		var audioURL = $w.data('audio');
 
 		var tsg = new JSPraat.TimeSyncedGrid($w);
-		var tgrid = new JSPraat.TextGrid(tgridURL);
 
-		tgrid.ready(function() {
-			tsg.setTextGrid(tgrid);
-		});
+		console.log('autoRender: TextGrid URL = ', tgridURL);
+		if(tgridURL) {
+			console.log('autoRender: creating TextGrid');
+			var tgrid = new JSPraat.TextGrid(tgridURL, function() {
+				tsg.setTextGrid(this);
+			});
+		}
+
+		console.log('autoRender: Audio URL = ', audioURL);
+		if(audioURL) {
+			console.log('autoRender: creating Audio');
+			var audio = new JSPraat.Audio(audioURL, function() {
+				console.log('READY!');
+				tsg.setAudio(this);
+			});
+		}
+
+		
 	});
 };
 //------------------------------------------------------------------------------------------------------

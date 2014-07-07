@@ -28,7 +28,7 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	/*height:100px;*/
 }
 .TSG-infotop-time-data {
-	display: inline-block;
+	/*display: inline-block;*/
 	color: #555;
 
 	margin: 0px;
@@ -37,16 +37,22 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	border-left: 1px solid #ccc;
 	border-right: 1px solid #ccc;
 
-	border-bottom: 1px solid #efefef;
-	border-top: 1px solid #efefef;
+	/*border-bottom: 1px solid #efefef;*/
+	/*border-top: 1px solid #efefef;*/
 
 	background-color: rgba(255,255,255,0.7);
 
 	padding-left: 4px;
 	padding-right: 4px;
+
+	padding-top:5px;
+	padding-bottom:2px;
+
+	font-size: 10px;
 }
 .TSG-current-time {
 	display: inline-block;
+	clear: both;
 	float: right;
 	color: #555;
 	background-color: #fafafa;
@@ -61,9 +67,15 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	content: " \f017";
 }
 .TSG-infotop-label {
-
+	/*display: inline-block;
+	height:19px;
+	padding: 0px;
+	margin: -5px;
+	width: 100px;
+	overflow: hidden;
+	overflow-y: auto;
+	background-color: red;*/
 }
-
 .TSG-controls {
 	display: inline-block;
 	margin-right: 10px;

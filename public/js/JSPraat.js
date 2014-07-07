@@ -462,7 +462,7 @@ JSPraat.Audio = function(url) {
 //------START OF STATIC FUNCTIONS---------------------
 /**
  * Calculates the average of an array. In this case for average volume.
- * It does not do type checking.
+ * It does not do type checking. It is meant to be used onaudioprocess.
  * @static
  * @param {Array} arr An array of summables and dividables
  * @method getAverageVolume
@@ -575,6 +575,22 @@ JSPraat.Audio.prototype.recreateSourceNode = function() {
 	this.connectNodes();
 };
 /**
+ * stopPlay is called to stop what is currently playing
+ * @method stopPlay
+ */
+JSPraat.Audio.prototype.stopPlay = function() {
+	if(this.playingTimeout) {
+		console.log('Audio: already playing something. Aborting current play:');
+
+		window.clearTimeout(this.playingTimeout);
+		this.playingTimeout = null;
+
+		this.sourceNode.stop(0);
+		this.recreateSourceNode();
+	}
+};
+
+/**
  * playDuration takes a required start time and an optional
  * duration. The duration must be less than remaining time from
  * the start time.
@@ -584,17 +600,22 @@ JSPraat.Audio.prototype.recreateSourceNode = function() {
  * @param {integer} duration The duration in seconds
  */
 JSPraat.Audio.prototype.playDuration = function(start, duration) {
+	var self = this;
+
 	if(start < 0 || start > self.audioBuffer.duration) {
 		throw "Audio: playDuration requires 0 <= start <= duration";
 	}
 	var remaining = self.audioBuffer.duration - start;
+
 	if(duration) {
 		if(duration > remaining) {
 			throw "Audio: playDuration requires duration <= remaining time";
 		}
 	} else {
-		
+		duration = remaining;
 	}
+
+	self.noteGrainOn(0, start, duration);
 };
 /**
  * playInterval takes a required start time and an optional
@@ -608,22 +629,13 @@ JSPraat.Audio.prototype.playDuration = function(start, duration) {
  * @param {integer} end The end time in seconds
  */
 JSPraat.Audio.prototype.playInterval = function(start, end) {
-	console.log('playing sound [' +start+ ', '+end+']');
+	console.log('playing sound [' +start+ ', ' +end+ ']');
 	var duration, self = this;
+
 	self.sourceNode.playbackRate.value = 1.0;
 
 	if(start < 0 || start > self.audioBuffer.duration) {
 		throw "Audio: playInterval requires 0 <= start <= duration";
-	}
-
-	if(self.playingTimeout) {
-		console.log('Audio: already playing something. Aborting current play:');
-
-		window.clearTimeout(self.playingTimeout);
-		self.playingTimeout = null;
-
-		self.sourceNode.stop(0);
-		self.recreateSourceNode();
 	}
 
 	if(end) {
@@ -637,18 +649,29 @@ JSPraat.Audio.prototype.playInterval = function(start, end) {
 		duration = self.audioBuffer.duration - start;
 	}
 
+	self.noteGrainOn(0, start, duration);
+};
+
+/**
+ * noteGrainOn wraps around sourceNode.noteGrainOn
+ * It recreates the playingTimeout
+ * @private
+ * @method noteGrainOn
+ */
+JSPraat.Audio.prototype.noteGrainOn = function(delay, offset, duration) {
+	var self = this;
+
+	self.stopPlay(); //release the lock
+
 	// noteGrainOn takes (delay, offset, duration)
-	// the duration is calculated as (end-start)
-	self.sourceNode.noteGrainOn(0, start, duration);
+	self.sourceNode.noteGrainOn(0, offset, duration);
 	self.playingTimeout = window.setTimeout(function() {
 		console.log('Audio: play finished. recreating source node.');
 		self.recreateSourceNode();
 		self.playingTimeout = null;
 	}, 1000*duration);
-
 	console.log('playingTimeout = ', self.playingTimeout);
-	
-};
+}
 JSPraat.Audio.prototype.onError = function(e) {
 	console.log(e);
 	throw "Audio: error decoding audio data. ";
@@ -992,6 +1015,7 @@ JSPraat.TimeSyncedGrid.prototype.renderTextGrid = function() {
 	console.log('rendering textgrid');
 
 	var self = this;
+
 	var xmaxTier = Math.ceil(self.textgrid.header.xmax);
 	var tierHeight = null;
 

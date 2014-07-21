@@ -803,10 +803,6 @@ JSPraat.TimeSyncedGrid = function($container) {
 				'cn': this.cPrefix + '-infotop-time-data',
 				'$': null,
 			},
-			'label': {
-				'cn': this.cPrefix + '-infotop-label',
-				'$': null,
-			},
 			'currentTime': {
 				'cn': this.cPrefix + '-current-time',
 				'$': null,
@@ -866,9 +862,6 @@ JSPraat.TimeSyncedGrid.prototype.initializeUI = function() {
 
 	this.c.$.prepend("<div class='"+this.c.infotop.cn+"'></div>");
 	this.c.infotop.$ = this.c.$.find('.'+this.c.infotop.cn);
-
-	this.c.infotop.$.prepend("<span class='"+this.c.infotop.label.cn+"'></span>");
-	this.c.infotop.label.$ = this.c.infotop.$.find('.'+this.c.infotop.label.cn);
 
 	this.c.infotop.$.prepend("<span class='"+this.c.infotop.timeData.cn+"'></span>");
 	this.c.infotop.timeData.$ = this.c.infotop.$.find('.'+this.c.infotop.timeData.cn);
@@ -1373,7 +1366,6 @@ JSPraat.TimeSyncedGrid.prototype.updateTimeMarkerAudio = function() {
  */
 JSPraat.TimeSyncedGrid.prototype.onWindowResize = function() {
 	var self = this;
-	console.log('Window Resize');
 	if(self.audio) {
 		var height = self.c.scroller.audioWrapper.height;
 		self.c.scroller.audioWrapper2.$.width(self.c.scroller.$.width());

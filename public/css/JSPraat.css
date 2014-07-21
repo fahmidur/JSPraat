@@ -89,16 +89,6 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	font-family: FontAwesome;
 	content: " \f017";
 }
-.TSG-infotop-label {
-	/*display: inline-block;
-	height:19px;
-	padding: 0px;
-	margin: -5px;
-	width: 100px;
-	overflow: hidden;
-	overflow-y: auto;
-	background-color: red;*/
-}
 .TSG-label {
 	display: block;
 	background-color: #e5e5e5;

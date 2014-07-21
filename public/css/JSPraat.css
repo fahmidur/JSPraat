@@ -23,6 +23,20 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	font-size:16px;
 	cursor:crosshair;
 }
+.TSG-infotop2 {
+	-webkit-user-select: none; /* webkit (safari, chrome) browsers */
+    -moz-user-select: none; /* mozilla browsers */
+    -khtml-user-select: none; /* webkit (konqueror) browsers */
+    -ms-user-select: none; /* IE10+ */
+    display: block;
+	background-color: #eee;
+	color: #2d2d2d;
+	padding:0px;
+	font-family: "Courier New", monospace;
+	font-weight: bold;
+	font-size:16px;
+	cursor:crosshair;
+}
 .TSG-audio-wrapper2 {
 	/*background-color: rgba(0,0,0,0.3);*/
 	z-index:10;
@@ -84,6 +98,37 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 	overflow: hidden;
 	overflow-y: auto;
 	background-color: red;*/
+}
+.TSG-label {
+	display: block;
+	background-color: #e5e5e5;
+	color: #2d2d2d;
+	padding:0px;
+	/*font-family:"Helvetica Neue",Arial,Helvetica,sans-serif;*/
+	font-family: "Courier New", monospace;
+	font-weight: bold;
+	font-size:16px;
+	cursor:crosshair;
+	min-height:18px;
+	padding:2px;
+	padding-left:5px;
+	text-align: center;
+}
+.TSG-label::before {
+	color: #999;
+	padding-top:2px;
+	font-family: FontAwesome;
+	margin-right:8px;
+	content: '\f10d';
+	font-size:14px;
+}
+.TSG-label::after {
+	color: #999;
+	padding-top:2px;
+	font-family: FontAwesome;
+	margin-left:8px;
+	content: '\f10e';
+	font-size:14px;
 }
 .TSG-controls {
 	display: inline-block;

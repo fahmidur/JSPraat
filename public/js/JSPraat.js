@@ -832,6 +832,10 @@ JSPraat.TimeSyncedGrid = function($container) {
 				}
 			}
 		},
+		'label': {
+			'cn': this.cPrefix + '-label',
+			'$': null,
+		},
 		'tiers': {
 			'className': this.cPrefix+'-tier',
 			's': '.'+ this.cPrefix +'-tier',
@@ -855,7 +859,10 @@ JSPraat.TimeSyncedGrid.prototype.initializeUI = function() {
 	var self = this;
 
 	this.c.$.html("<div class='"+this.c.scroller.cn+"'></div>");
-	this.c.scroller.$ = this.c.$.find('.' + this.c.scroller.cn);
+	this.c.scroller.$ = this.c.$.find('.'+this.c.scroller.cn);
+
+	this.c.$.prepend("<div class='"+this.c.label.cn+"'></div>");
+	this.c.label.$ = this.c.$.find('.'+this.c.label.cn);
 
 	this.c.$.prepend("<div class='"+this.c.infotop.cn+"'></div>");
 	this.c.infotop.$ = this.c.$.find('.'+this.c.infotop.cn);
@@ -1177,7 +1184,7 @@ JSPraat.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			.attr('class', 'interval-group')
 			.on('mouseenter', function(d) {
 				self.c.infotop.timeData.$.text(d[0].toFixed(self.timePrecision)+ ", " + d[1].toFixed(self.timePrecision));
-				self.c.infotop.label.$.html(d[2]);
+				self.c.label.$.html(d[2]);
 			})
 			.on('mouseout', function(d) {
 				
@@ -1230,7 +1237,7 @@ JSPraat.TimeSyncedGrid.prototype.renderTextGrid = function() {
 			.attr('class', 'point-group')
 			.on('mouseenter', function(d) {
 				self.c.infotop.timeData.$.text(d[0].toFixed(self.timePrecision));
-				self.c.infotop.label.$.text(d[1]);
+				self.c.label.$.text(d[1]);
 			})
 			.on('mouseout', function(d) {
 				
@@ -1444,6 +1451,7 @@ JSPraat.TimeSyncedGrid.prototype.renderAudio = function() {
 		
 	}
 	ctx.strokeStyle = 'rgba(0,0,100,0.7)';
+	// ctx.strokeStyle = 'rgba(100,100,100,1.0)';
 	ctx.lineWidth = 1;
 	ctx.stroke();
 

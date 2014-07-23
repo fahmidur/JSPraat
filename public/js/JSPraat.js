@@ -945,6 +945,7 @@ JSPraat.TimeSyncedGrid.prototype.initializeUI = function() {
 	this.c.scroller.$.mousewheel(function(e, delta) {
 		var currentScroll = self.c.scroller.$.scrollLeft();
 		self.c.scroller.$.scrollLeft(currentScroll - 10*delta);
+		self.updateTimeWindow();
 		return false;
 	});
 
@@ -959,9 +960,26 @@ JSPraat.TimeSyncedGrid.prototype.initializeUI = function() {
 
 	this.updateZoomControls();
 };
+JSPraat.TimeSyncedGrid.prototype.updateTimeWindow = function() {
+	var self = this;
+	var $scroller = self.c.scroller.$;
+	var $timeWindow = self.c.infotop.currentWindow.$;
+
+	var leftTime = Math.round(self.mapTierPositionToTime(1)*1000) / 1000;
+	var scrollerWidth = self.c.scroller.$.width() - 1;
+	var rightTime = Math.round(self.mapTierPositionToTime(scrollerWidth)*1000) / 1000;
+
+	$timeWindow.text(leftTime + ", " + rightTime);
+};
 JSPraat.TimeSyncedGrid.prototype.updateZoomControls = function() {
+	var self = this;
 	this.c.infotop.controls.zoomIndicator.$.text( Math.round((this.xmult - this.xmultMin) / (this.xmultMax - this.xmultMin) * 100) );
 	this.c.infotop.controls.zoomSlider.$.val(this.xmult);
+
+	var scrollLeft = this.c.scroller.$.scrollLeft();
+	window.setTimeout(function() {
+		self.updateTimeWindow();
+	}, 500);
 }
 JSPraat.TimeSyncedGrid.prototype.controlsEventHandler_zoomIn_click = function(e) {
 	console.log('TimeSyncedGrid Event: zoomIn');
@@ -1318,17 +1336,21 @@ JSPraat.TimeSyncedGrid.prototype.renderTextGrid = function() {
 
 	self.c.tiers.tierNameOffset = tierNameOffset;
 	self.c.scroller.$.find('svg').on('click', function(e) {
-		var xPixels = self.c.scroller.$.scrollLeft() + (e.pageX - self.c.scroller.$.position().left) - tierNameOffset - 1;
-		if(xPixels < 0) { xPixels  = 0; }
-
-		self.currentTime = xPixels / self.xmult;
-		// console.log(xPixels, self.currentTime);
-
-		self.c.infotop.currentTime.$.text(self.currentTime.toFixed(self.timePrecision));
+		self.currentTime = self.mapTierPositionToTime(e.pageX - self.c.scroller.$.position().left);
 		self.updateTimeMarker();
 	});
 
 	self.tierNameOffset = tierNameOffset;
+};
+JSPraat.TimeSyncedGrid.prototype.mapTierPositionToTime = function(offset) { 
+	var self = this;
+	var tierNameOffset = self.c.tiers.tierNameOffset;
+
+	var xPixels = self.c.scroller.$.scrollLeft() - tierNameOffset - 1;
+	if(offset) { xPixels += offset; }
+	if(xPixels < 0) { xPixels = 0; }
+
+	return xPixels / self.xmult;
 };
 /**
  * Move the timeMarker for each tier to the currentTime

@@ -73,6 +73,31 @@ body::-webkit-scrollbar-thumb{background-color:#bbb;}
 
 	font-size: 10px;
 }
+.TSG-infotop-current-window {
+	color: #555;
+
+	margin: 0px;
+	margin-right: 10px;
+
+	border-left: 1px solid #ccc;
+	border-right: 1px solid #ccc;
+
+	background-color: rgba(255,255,255,0.7);
+
+	padding-left: 4px;
+	padding-right: 4px;
+
+	padding-top:5px;
+	padding-bottom:2px;
+
+	font-size: 10px;
+}
+.TSG-infotop-current-window::after {
+	font-family: FontAwesome;
+	content: " \f008";
+	/*content: " \f0db";*/
+}
+
 .TSG-current-time {
 	display: inline-block;
 	clear: both;

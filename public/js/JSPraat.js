@@ -803,6 +803,10 @@ JSPraat.TimeSyncedGrid = function($container) {
 				'cn': this.cPrefix + '-infotop-time-data',
 				'$': null,
 			},
+			'currentWindow': {
+				'cn': this.cPrefix + '-infotop-current-window',
+				'$': null
+			},
 			'currentTime': {
 				'cn': this.cPrefix + '-current-time',
 				'$': null,
@@ -863,8 +867,14 @@ JSPraat.TimeSyncedGrid.prototype.initializeUI = function() {
 	this.c.$.prepend("<div class='"+this.c.infotop.cn+"'></div>");
 	this.c.infotop.$ = this.c.$.find('.'+this.c.infotop.cn);
 
+	this.c.infotop.$.prepend("<span class='"+this.c.infotop.currentWindow.cn+"'></span>");
+	this.c.infotop.currentWindow.$ = this.c.infotop.$.find('.'+this.c.infotop.currentWindow.cn);
+	this.c.infotop.currentWindow.$.attr('title', 'Current Time Window');
+	this.c.infotop.currentWindow.$.text('-');
+
 	this.c.infotop.$.prepend("<span class='"+this.c.infotop.timeData.cn+"'></span>");
 	this.c.infotop.timeData.$ = this.c.infotop.$.find('.'+this.c.infotop.timeData.cn);
+	
 
 	this.c.infotop.$.append("<span class='"+this.c.infotop.currentTime.cn+"'></span>");
 	this.c.infotop.currentTime.$ = this.c.infotop.$.find('.'+this.c.infotop.currentTime.cn);
@@ -904,7 +914,6 @@ JSPraat.TimeSyncedGrid.prototype.initializeUI = function() {
 	this.c.scroller.$.prepend('<canvas class="'+this.c.scroller.audioWrapper2.cn+'"></canvas>');
 	this.c.scroller.audioWrapper2.$ = this.c.scroller.$.find('.'+this.c.scroller.audioWrapper2.cn);
 	this.c.scroller.audioWrapper2.z = this.c.scroller.audioWrapper2.$.get(0);
-
 
 	this.c.scroller.$.on('scroll', function(e) {
 		if(!self.tierNameOffset) { return; }
@@ -954,13 +963,11 @@ JSPraat.TimeSyncedGrid.prototype.updateZoomControls = function() {
 	this.c.infotop.controls.zoomIndicator.$.text( Math.round((this.xmult - this.xmultMin) / (this.xmultMax - this.xmultMin) * 100) );
 	this.c.infotop.controls.zoomSlider.$.val(this.xmult);
 }
-
 JSPraat.TimeSyncedGrid.prototype.controlsEventHandler_zoomIn_click = function(e) {
 	console.log('TimeSyncedGrid Event: zoomIn');
 	this.xmult += this.zoomFactor;
 	this.render();
 };
-
 JSPraat.TimeSyncedGrid.prototype.controlsEventHandler_zoomOut_click = function(e) {
 	console.log('TimeSyncedGrid Event: zoomOut');
 	var newMult = this.xmult - this.zoomFactor;
@@ -1001,7 +1008,6 @@ JSPraat.TimeSyncedGrid.prototype.setAudio = function(audio) {
 JSPraat.TimeSyncedGrid.prototype.reshape = function() {
 	console.log('reshaping...');
 	var self = this;
-
 
 	var pTimeMarkerOffset = 0;
 	var cTimeMarkerOffset = 0;

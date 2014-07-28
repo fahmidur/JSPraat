@@ -939,7 +939,9 @@ JSPraat.TimeSyncedGrid.prototype.initializeUI = function() {
 			.attr('transform', 'translate('+x+', 0)');
 		}
 
-		self.updateTimeMarkerAudio();
+		if(self.audio) {
+			self.updateTimeMarkerAudio();	
+		}
 		self.updateTimeWindow();
 	});
 
@@ -977,7 +979,9 @@ JSPraat.TimeSyncedGrid.prototype.updateTimeWindow = function() {
 
 	$timeWindow.text(leftTime + ", " + rightTime + ", " + (Math.round( (self.c.scroller.audioWrapper.timeWindow)*1000 ) / 1000) );
 
-	self.renderAudioWindow();
+	if(self.audio) {
+		self.renderAudioWindow();	
+	}
 };
 JSPraat.TimeSyncedGrid.prototype.updateZoomControls = function() {
 	var self = this;
@@ -1103,7 +1107,14 @@ JSPraat.TimeSyncedGrid.prototype.render = function() {
 	this.c.scroller.pos = this.c.scroller.$.scrollLeft();
 
 	if(this.textgrid)	{ this.renderTextGrid();	}
-	if(this.audio) 		{ this.renderAudio();		}
+	if(this.audio) { 
+		this.c.scroller.audioWrapper.$.show();
+		this.c.scroller.audioWrapper2.$.show();
+		this.renderAudio();
+	} else {
+		this.c.scroller.audioWrapper.$.hide();
+		this.c.scroller.audioWrapper2.$.hide();
+	}
 
 	this.c.scroller.$.scrollLeft(this.c.scroller.pos);
 
@@ -1376,7 +1387,9 @@ JSPraat.TimeSyncedGrid.prototype.updateTimeMarker = function() {
 	}
 	this.c.infotop.currentTime.$.text(this.currentTime.toFixed(this.timePrecision));
 
-	self.updateTimeMarkerAudio();
+	if(self.audio) {
+		self.updateTimeMarkerAudio();	
+	}
 };
 JSPraat.TimeSyncedGrid.prototype.updateTimeMarkerAudio = function() {
 	var self = this;
@@ -1524,7 +1537,7 @@ JSPraat.TimeSyncedGrid.prototype.renderAudioWindow = function() {
 	// console.log(scrollLeft);
 
 	self.c.scroller.audioWrapper.z.style.left = self.c.scroller.$.scrollLeft() + 'px';
-	
+
 	var offset = 0;
 	if(scrollLeft < tierNameOffset) {
 		offset = -scrollLeft;
@@ -1571,7 +1584,7 @@ JSPraat.TimeSyncedGrid.autoRender = function() {
 		}
 
 		console.log('autoRender: Audio URL = ', audioURL);
-		if(audioURL) {
+		if(audioURL && !audioURL.match(/^\s+$/)) {
 			console.log('autoRender: creating Audio');
 			var audio = new JSPraat.Audio(audioURL, function() {
 				console.log('READY!');

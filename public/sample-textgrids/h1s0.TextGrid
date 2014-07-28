@@ -1,0 +1,175 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 4.9276 
+tiers? <exists> 
+size = 4 
+item []: 
+    item [1]:
+        class = "TextTier" 
+        name = "tones" 
+        xmin = 0 
+        xmax = 4.9276 
+        points: size = 18 
+        points [1]:
+            time = 0.180943 
+            mark = "H*" 
+        points [2]:
+            time = 0.354187 
+            mark = "H*" 
+        points [3]:
+            time = 0.365736 
+            mark = "HiF0" 
+        points [4]:
+            time = 0.696824 
+            mark = "L-" 
+        points [5]:
+            time = 0.912416 
+            mark = "H*" 
+        points [6]:
+            time = 1.385948 
+            mark = "H*" 
+        points [7]:
+            time = 1.397498 
+            mark = "HiF0" 
+        points [8]:
+            time = 1.674687 
+            mark = "H-H%" 
+        points [9]:
+            time = 2.14989 
+            mark = "L*" 
+        points [10]:
+            time = 2.339105 
+            mark = "L-" 
+        points [11]:
+            time = 2.629451 
+            mark = "H*" 
+        points [12]:
+            time = 3.530064 
+            mark = "H*" 
+        points [13]:
+            time = 3.541867 
+            mark = "HiF0" 
+        points [14]:
+            time = 3.74308 
+            mark = "H-" 
+        points [15]:
+            time = 3.784707 
+            mark = "L%" 
+        points [16]:
+            time = 4.392432 
+            mark = "H*" 
+        points [17]:
+            time = 4.462096 
+            mark = "HiF0" 
+        points [18]:
+            time = 4.646523 
+            mark = "L-L%" 
+    item [2]:
+        class = "IntervalTier" 
+        name = "words" 
+        xmin = 0 
+        xmax = 4.9276 
+        intervals: size = 14 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.081437 
+            text = "#" 
+        intervals [2]:
+            xmin = 0.081437 
+            xmax = 0.247688 
+            text = "My" 
+        intervals [3]:
+            xmin = 0.247688 
+            xmax = 0.465562 
+            text = "name" 
+        intervals [4]:
+            xmin = 0.465562 
+            xmax = 0.707 
+            text = "is" 
+        intervals [5]:
+            xmin = 0.707 
+            xmax = 1.13919 
+            text = "Randy" 
+        intervals [6]:
+            xmin = 1.13919 
+            xmax = 1.69406 
+            text = "Keller" 
+        intervals [7]:
+            xmin = 1.69406 
+            xmax = 1.99206 
+            text = "#" 
+        intervals [8]:
+            xmin = 1.99206 
+            xmax = 2.39006 
+            text = "and" 
+        intervals [9]:
+            xmin = 2.39006 
+            xmax = 2.845 
+            text = "today's" 
+        intervals [10]:
+            xmin = 2.845 
+            xmax = 3.02644 
+            text = "date" 
+        intervals [11]:
+            xmin = 3.02644 
+            xmax = 3.24669 
+            text = "is" 
+        intervals [12]:
+            xmin = 3.24669 
+            xmax = 3.84987 
+            text = "June" 
+        intervals [13]:
+            xmin = 3.84987 
+            xmax = 4.21975 
+            text = "#" 
+        intervals [14]:
+            xmin = 4.21975 
+            xmax = 4.66394 
+            text = "second" 
+    item [3]:
+        class = "TextTier" 
+        name = "breaks" 
+        xmin = 0 
+        xmax = 4.9276 
+        points: size = 11 
+        points [1]:
+            time = 0.247688 
+            mark = "1" 
+        points [2]:
+            time = 0.465562 
+            mark = "1" 
+        points [3]:
+            time = 0.707 
+            mark = "3" 
+        points [4]:
+            time = 1.13919 
+            mark = "1" 
+        points [5]:
+            time = 1.69406 
+            mark = "4" 
+        points [6]:
+            time = 2.39006 
+            mark = "3" 
+        points [7]:
+            time = 2.845 
+            mark = "1" 
+        points [8]:
+            time = 3.02644 
+            mark = "0" 
+        points [9]:
+            time = 3.24669 
+            mark = "1" 
+        points [10]:
+            time = 3.84987 
+            mark = "4" 
+        points [11]:
+            time = 4.66394 
+            mark = "4" 
+    item [4]:
+        class = "TextTier" 
+        name = "misc" 
+        xmin = 0 
+        xmax = 4.9276 
+        points: size = 0 

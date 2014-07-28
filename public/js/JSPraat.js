@@ -349,7 +349,7 @@ JSPraat.TextGrid.Tier.prototype.parseIntervals = function() {
 
 		if( (match = topm.match(intervalStartRegex)) ) {
 		} else {
-			throw "Invalid Tier Body: Invalid interval start format, expecting 'intervals [<digit>]:'";
+			throw "Invalid Tier Body: Invalid interval start format, expecting 'intervals [<digit>]:' \n ";
 		}
 
 		if( (match = xmax.match(xmaxRegex)) ){ xmax = parseFloat(match[1]); } 
@@ -376,18 +376,21 @@ JSPraat.TextGrid.Tier.prototype.parsePoints = function() {
 	// console.log('Parsing Intervals FROM ', this.startingLineIndexOfBody);
 
 	var pointStartRegex = /\s*points\s*\[\d+\]\:/i;
-	var numberRegex = /^\s*number\s*\=\s*([\d\.]+)/i;
-	var markRegex = /^\s*mark\s*\=\s*\"(.*)\"/i;
+
+
+	// Praat doesn't actually care about the label of these fields.  The "number" comes first, followed by the "mark".
+	var numberRegex = /^\s*\w+\s*\=\s*([\d\.]+)/i; //replaced number
+	var markRegex = /^\s*\w+\s*\=\s*\"(.*)\"/i; //replaced mark
 
 	var topm, number, mark;
 	for(var i = this.startingLineIndexOfBody; i < this.lines.length; i++) {
 		topm = this.lines[i++]; 	if(i >= this.lines.length) { throw "Invalid Tier Body: incomplete point 0"; }
 		number = this.lines[i++];	if(i >= this.lines.length) { throw "Invalid Tier Body: incomplete point 1"; }
-		mark = this.lines[i++];
+		mark = this.lines[i];
 
 		if( (match = topm.match(pointStartRegex)) ) {
 		} else {
-			throw "Invalid Tier Body: Invalid point start format, expecting 'points [<digit>]:'";
+			throw "Invalid Tier Body: Invalid point start format, expecting 'points [<digit>]:'" + topm + "|";
 		}
 
 		if( (match = number.match(numberRegex)) ){ number = parseFloat(match[1]); } 
@@ -1572,6 +1575,8 @@ JSPraat.TimeSyncedGrid.autoRender = function() {
 		var $w = $(this);
 		var tgridURL = $w.data('textgrid');
 		var audioURL = $w.data('audio');
+
+		console.log(tgridURL);
 
 		var tsg = new JSPraat.TimeSyncedGrid($w);
 

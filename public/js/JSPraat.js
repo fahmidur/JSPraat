@@ -940,6 +940,7 @@ JSPraat.TimeSyncedGrid.prototype.initializeUI = function() {
 		}
 
 		self.updateTimeMarkerAudio();
+		self.updateTimeWindow();
 	});
 
 	this.c.scroller.$.mousewheel(function(e, delta) {
@@ -969,7 +970,14 @@ JSPraat.TimeSyncedGrid.prototype.updateTimeWindow = function() {
 	var scrollerWidth = self.c.scroller.$.width() - 1;
 	var rightTime = Math.round(self.mapTierPositionToTime(scrollerWidth)*1000) / 1000;
 
-	$timeWindow.text(leftTime + ", " + rightTime + ", " + (Math.round( (rightTime - leftTime)*1000 ) / 1000) );
+
+	self.c.scroller.audioWrapper.leftTime = leftTime;
+	self.c.scroller.audioWrapper.rightTime = rightTime;
+	self.c.scroller.audioWrapper.timeWindow = rightTime - leftTime;
+
+	$timeWindow.text(leftTime + ", " + rightTime + ", " + (Math.round( (self.c.scroller.audioWrapper.timeWindow)*1000 ) / 1000) );
+
+	self.renderAudioWindow();
 };
 JSPraat.TimeSyncedGrid.prototype.updateZoomControls = function() {
 	var self = this;
@@ -1386,7 +1394,7 @@ JSPraat.TimeSyncedGrid.prototype.updateTimeMarkerAudio = function() {
 	ctx.lineTo(x, parseInt(self.c.scroller.audioWrapper.z.height));
 	ctx.strokeStyle='rgba(255,0,0,0.5)';
 	ctx.lineWidth=1.5;
-	ctx.stroke();	
+	ctx.stroke();
 }
 /**
  * Handle a window resize event. Setup by self.render()
@@ -1425,11 +1433,20 @@ JSPraat.TimeSyncedGrid.prototype.renderAudio = function() {
 	var height = self.c.scroller.audioWrapper.height;
 	var halfHeight = height / 2;
 
-	self.c.scroller.audioWrapper.$.width(width);
+	// self.c.scroller.audioWrapper.$.width(width);
+	// self.c.scroller.audioWrapper.z.width = width;
+
+	// Render only current width
+	self.c.scroller.audioWrapper.$.width(self.c.scroller.$.width());
+	self.c.scroller.audioWrapper.z.width = self.c.scroller.$.width();
+
+	self.c.scroller.audioWrapper.z.style.position = 'relative';
+	self.c.scroller.audioWrapper.z.style.left = '0px';
+
+
+
 	self.c.scroller.audioWrapper.$.height(height);
-	self.c.scroller.audioWrapper.z.width = width;
 	self.c.scroller.audioWrapper.z.height = height;
-	
 
 
 	var position = self.c.scroller.audioWrapper.$.position();
@@ -1449,44 +1466,94 @@ JSPraat.TimeSyncedGrid.prototype.renderAudio = function() {
 	// console.log('pxPerSecond = ', pxPerSecond);
 	var numPeaks = aWidth;
 	var peaks = self.audio.findPeaks(numPeaks);
+	self.c.scroller.audioWrapper.peaks = peaks;
 	console.log('peaks.length = ', peaks.length);
+	
+	// var ctx = self.c.scroller.audioWrapper.z.getContext('2d');
+	// var magY = null;
+	// // TO-DO: normalize 
+	
+	// ctx.beginPath();
+	// for(var i = 0; i < peaks.length; ++i) {
+	// 	magY = halfHeight * peaks[i];	
 
+	// 	ctx.moveTo(tierNameOffset + i, halfHeight);
+	// 	ctx.lineTo(tierNameOffset + i, halfHeight + magY );
+
+	// 	ctx.moveTo(tierNameOffset + i, halfHeight);
+	// 	ctx.lineTo(tierNameOffset + i, halfHeight - magY);
+
+
+	// }
+	// ctx.strokeStyle = 'rgba(0,0,100,0.7)';
+	// ctx.lineWidth = 1;
+	// ctx.stroke();
+
+
+	self.updateTimeWindow();
+
+	self.c.scroller.audioWrapper2.ctx = self.c.scroller.audioWrapper2.z.getContext('2d');
+};
+JSPraat.TimeSyncedGrid.prototype.renderAudioWindow = function() {
+	var self = this;
+
+	var tierNameOffset = this.c.tiers.tierNameOffset;
+	var height = self.c.scroller.audioWrapper.height;
+	var halfHeight = height / 2;
+
+	var peaks = self.c.scroller.audioWrapper.peaks;
+	var ctx = self.c.scroller.audioWrapper.z.getContext('2d');
 
 	
-	var ctx = self.c.scroller.audioWrapper.z.getContext('2d');
+	var duration = self.audio.audioBuffer.duration;
+	var leftTime = self.c.scroller.audioWrapper.leftTime;
+	var rightTime = self.c.scroller.audioWrapper.rightTime;
+
+	var peakStart = ~~((leftTime/duration) * peaks.length);
+	var peakEnd = ~~((rightTime/duration) * peaks.length);
+
+	// console.log('leftTime = ', leftTime);
+	// console.log('rightTime = ', rightTime);
+	// console.log('peakStart = ', peakStart);
+	// console.log('peakEnd = ', peakEnd);
+
+	// peakStart = 500;
+	// peakEnd = 1800;
+
+	var scrollLeft = self.c.scroller.$.scrollLeft();
+	// console.log(scrollLeft);
+
+	self.c.scroller.audioWrapper.z.style.left = self.c.scroller.$.scrollLeft() + 'px';
+	
+	var offset = 0;
+	if(scrollLeft < tierNameOffset) {
+		offset = -scrollLeft;
+	} else {
+		offset = -tierNameOffset;
+	}
+
+	// Clear the canvas
+	self.c.scroller.audioWrapper.z.width = self.c.scroller.audioWrapper.z.width;
+
 	var magY = null;
-	// TO-DO: normalize 
 	ctx.beginPath();
-	for(var i = 0; i < peaks.length; ++i) {
+
+	for(var i = peakStart; i < peakEnd; ++i) {
 		magY = halfHeight * peaks[i];
-		
+		ctx.moveTo(tierNameOffset + offset, halfHeight);
+		ctx.lineTo(tierNameOffset + offset, halfHeight + magY );
 
-		ctx.moveTo(tierNameOffset + i, halfHeight);
-		ctx.lineTo(tierNameOffset + i, halfHeight + magY );
+		ctx.moveTo(tierNameOffset + offset, halfHeight);
+		ctx.lineTo(tierNameOffset + offset, halfHeight - magY);
 
-		ctx.moveTo(tierNameOffset + i, halfHeight);
-		ctx.lineTo(tierNameOffset + i, halfHeight - magY);
-
-		
-		
+		++offset;
 	}
 	ctx.strokeStyle = 'rgba(0,0,100,0.7)';
-	// ctx.strokeStyle = 'rgba(100,100,100,1.0)';
 	ctx.lineWidth = 1;
 	ctx.stroke();
 
-	// ctx.beginPath();
-	// ctx.moveTo(5,5);
-	// ctx.lineTo(1000, halfHeight);
-	// ctx.strokeStyle = 'red';
-	// ctx.lineWidth = 2;
-	// ctx.stroke();
-
 	self.c.scroller.audioWrapper.ctx = ctx;
-	self.c.scroller.audioWrapper2.ctx = self.c.scroller.audioWrapper2.z.getContext('2d');
 };
-
-
 JSPraat.TimeSyncedGrid.autoRender = function() {
 	$('.TSG-container').each(function(e) {
 		var $w = $(this);

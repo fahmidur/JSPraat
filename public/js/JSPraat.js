@@ -969,7 +969,7 @@ JSPraat.TimeSyncedGrid.prototype.updateTimeWindow = function() {
 	var scrollerWidth = self.c.scroller.$.width() - 1;
 	var rightTime = Math.round(self.mapTierPositionToTime(scrollerWidth)*1000) / 1000;
 
-	$timeWindow.text(leftTime + ", " + rightTime);
+	$timeWindow.text(leftTime + ", " + rightTime + ", " + (Math.round( (rightTime - leftTime)*1000 ) / 1000) );
 };
 JSPraat.TimeSyncedGrid.prototype.updateZoomControls = function() {
 	var self = this;
